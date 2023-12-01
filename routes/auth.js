@@ -4,6 +4,7 @@ const passport = require('passport');
 const extractUserId = require('../middleware/extractUserId');
 const checkTokenExpiration = require('../middleware/checkTokenExpiration');
 const multer = require('multer');
+const { User, Vendor } = require('../models/User');
 
 const router = express.Router();
 
@@ -13,6 +14,22 @@ const upload = multer({ storage: storage });
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.get('/vendor-profile', extractUserId, checkTokenExpiration, async (req, res) => {
+  try {
+    // Ensure that the user is a vendor
+    const vendor = await Vendor.findById(req.userId);
+
+    if (!vendor) {
+      return res.status(403).json({ message: 'Unauthorized. Only vendors can access this route.' });
+    }
+
+    // Handle vendor profile route
+    res.json({ message: 'Vendor profile route accessed successfully.', vendor });
+  } catch (error) {
+    console.error('Error accessing vendor profile:', error);
+    res.status(500).json({ message: 'Internal Server Error accessing vendor profile' });
+  }
+});
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/verify-email', authController.verifyEmail);
 router.post('/reset-password', authController.resetPassword);
