@@ -38,6 +38,14 @@ router.post('/resend-otp', authController.resendOTP);
 router.get('/user', extractUserId, authController.getUser);
 router.get('/users/:userId', authController.getUser);
 
+// Route to update user profile
+router.put('/update-profile', extractUserId, authController.updateUserProfile);
+
+// Route to update Vendor Profile 
+router.put('/update-vendor-profile', extractUserId, authController.updateVendorProfile);
+// Route to get user orders/payment transactions
+router.get('/user-orders', extractUserId, authController.getUserOrders);
+
 // New routes for Google authentication
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 

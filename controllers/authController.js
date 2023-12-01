@@ -10,7 +10,7 @@
   const multer = require('multer');
   const extractUserId = require('../middleware/extractUserId');
   const { User, Vendor } = require('../models/User');
-
+  const {Product} = require('../models/product')
 
     // Set up storage for multer
   const storage = multer.memoryStorage();
@@ -123,6 +123,94 @@
           } catch (error) {
             console.error('Error during login:', error);
             res.status(500).json({ message: 'Internal Server Error during login' });
+          }
+        },
+
+        updateUserProfile: async (req, res) => {
+          try {
+            const userId = req.userId; // Extracted from the JWT token using extractUserId middleware
+            console.log('User ID:', userId);
+      
+            // Find the user by ID
+            const user = await User.findById(userId);
+            if (!user) {
+              return res.status(404).json({ message: 'User not found' });
+            }
+      
+            // Extract updated profile information from the request body
+            const { email, password, fullName } = req.body;
+      
+            // Update the user's profile information
+            user.email = email || user.email;
+            if (password) {
+              // If a new password is provided, hash and update it
+              const hashedPassword = await bcrypt.hash(password, 10);
+              user.password = hashedPassword;
+            }
+            user.fullName = fullName || user.fullName;
+      
+            // Save the user with the updated profile
+            await user.save();
+      
+            res.status(200).json({ message: 'User profile updated successfully' });
+          } catch (error) {
+            console.error('Error updating user profile:', error);
+            res.status(500).json({ message: 'Internal Server Error updating user profile' });
+          }
+        },
+      
+        updateVendorProfile: async (req, res) => {
+          try {
+            const userId = req.userId; // Extracted from the JWT token using extractUserId middleware
+            console.log('User ID:', userId);
+      
+            // Find the vendor by ID
+            const vendor = await Vendor.findById(userId);
+            if (!vendor) {
+              return res.status(404).json({ message: 'Vendor not found' });
+            }
+      
+            // Extract updated profile information from the request body
+            const { email, password, fullName } = req.body;
+      
+            // Update the vendor's profile information
+            vendor.email = email || vendor.email;
+            if (password) {
+              // If a new password is provided, hash and update it
+              const hashedPassword = await bcrypt.hash(password, 10);
+              vendor.password = hashedPassword;
+            }
+            vendor.fullName = fullName || vendor.fullName;
+      
+            // Save the vendor with the updated profile
+            await vendor.save();
+      
+            res.status(200).json({ message: 'Vendor profile updated successfully' });
+          } catch (error) {
+            console.error('Error updating vendor profile:', error);
+            res.status(500).json({ message: 'Internal Server Error updating vendor profile' });
+          }
+        },
+
+        getUserOrders: async (req, res) => {
+          try {
+            const userId = req.userId; // Extracted from the JWT token using extractUserId middleware
+            console.log('User ID:', userId);
+      
+            // Find the user by ID
+            const user = await User.findById(userId);
+            if (!user) {
+              return res.status(404).json({ message: 'User not found' });
+            }
+      
+            // Fetch user orders/payment transactions from your database
+            // Modify this based on your data model and requirements
+            const userOrders = await Order.find({ userId: user._id });
+      
+            res.status(200).json({ orders: userOrders });
+          } catch (error) {
+            console.error('Error getting user orders:', error);
+            res.status(500).json({ message: 'Internal Server Error getting user orders' });
           }
         },
 
@@ -363,6 +451,54 @@
         } catch (error) {
           console.error('Error updating profile picture:', error);
           res.status(500).json({ message: 'Internal Server Error updating profile picture' });
+        }
+      },
+      addReview: async (req, res) => {
+        try {
+          const userId = req.userId; // Assuming customer's user ID is stored in the JWT token
+          const { productId, rating, comment } = req.body;
+    
+          // Find the product by ID
+          const product = await Product.findById(productId);
+          if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+          }
+    
+          // Create a new review
+          const review = {
+            customer: userId,
+            rating,
+            comment,
+          };
+    
+          // Add the review to the product
+          product.reviews.push(review);
+    
+          // Save the updated product
+          await product.save();
+    
+          res.status(201).json({ message: 'Review added successfully' });
+        } catch (error) {
+          console.error('Error adding review:', error);
+          res.status(500).json({ message: 'Internal Server Error adding review' });
+        }
+      },
+    
+      getReviews: async (req, res) => {
+        try {
+          const productId = req.params.productId;
+    
+          // Find the product by ID
+          const product = await Product.findById(productId).populate('reviews.customer', 'fullName');
+    
+          if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+          }
+    
+          res.status(200).json({ reviews: product.reviews });
+        } catch (error) {
+          console.error('Error getting reviews:', error);
+          res.status(500).json({ message: 'Internal Server Error getting reviews' });
         }
       },
     };
