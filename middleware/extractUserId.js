@@ -5,12 +5,15 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const extractUserId = (req, res, next) => {
   try {
+    // Check if a token is provided in the header
     const token = req.header('x-auth-token');
 
+    // If no token is provided, move to the next middleware or route
     if (!token) {
-      return res.status(401).json({ message: 'Authorization denied. Token not found.' });
+      return next();
     }
 
+    // If a token is provided, extract the user ID
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
     next();

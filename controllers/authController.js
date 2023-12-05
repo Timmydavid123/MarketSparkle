@@ -57,7 +57,12 @@
       const authController = {
         signup: async (req, res) => {
           try {
-            const { email, password, fullName, role } = req.body;
+            const { email, password, confirmPassword, fullName, role, streetAddress, city, state, country, zipCode } = req.body;
+      
+            // Check if the passwords match
+            if (password !== confirmPassword) {
+              return res.status(400).json({ message: 'Passwords do not match.' });
+            }
       
             // Check if the user already exists
             const existingUser = await User.findOne({ email });
@@ -74,6 +79,11 @@
                 email,
                 password,
                 fullName,
+                streetAddress,
+                city,
+                state,
+                country,
+                zipCode,
                 // Add other vendor-specific fields as needed
               });
             } else {
@@ -86,7 +96,21 @@
               });
             }
       
-            res.status(201).json({ message: 'Signup successful.', user: newUser });
+            // Optionally, generate a token for the newly signed up user
+            const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '1d' });
+      
+            // Generate an OTP for email verification
+            const emailVerificationOTP = otpGenerator.generate(6, { upperCase: false, specialChars: false });
+      
+            // Save the OTP in the user document
+            newUser.emailVerificationOTP = emailVerificationOTP;
+            await newUser.save();
+      
+            // Send the OTP to the user's email
+            const emailText = `Your OTP for email verification is: ${emailVerificationOTP}`;
+            await sendEmail(email, 'Email Verification OTP', emailText);
+      
+            res.status(201).json({ message: 'Signup successful. Email verification OTP sent.' });
           } catch (error) {
             console.error('Error during signup:', error);
             res.status(500).json({ message: 'Internal Server Error during signup' });
@@ -96,25 +120,30 @@
         login: async (req, res) => {
           try {
             const { email, password } = req.body;
-      
+        
             // Determine if the user is a regular user or a vendor
             const user = await User.findOne({ email });
             const vendor = await Vendor.findOne({ email });
-      
+        
             // Check if either a regular user or a vendor is found
             if (user || vendor) {
               // Choose the appropriate model based on the role
               const userModel = user || vendor;
-      
+        
+              // Check if the user is verified
+              if (!userModel.isVerified) {
+                return res.status(401).json({ message: 'Email not verified. Please verify your email.' });
+              }
+        
               // Check the password
               const validPassword = await userModel.comparePassword(password);
               if (!validPassword) {
                 return res.status(401).json({ message: 'Invalid password' });
               }
-      
+        
               // Generate a JWT token with expiration time set to 1 day
               const token = userModel.generateAuthToken();
-      
+        
               // Send the token in the response
               res.json({ token, message: 'Login successful' });
             } else {
@@ -171,7 +200,12 @@
             }
       
             // Extract updated profile information from the request body
-            const { email, password, fullName } = req.body;
+            const { email, password, confirmPassword, fullName, streetAddress, city, state, country, zipCode } = req.body;
+      
+            // Check if the passwords match
+            if (password !== confirmPassword) {
+              return res.status(400).json({ message: 'Passwords do not match.' });
+            }
       
             // Update the vendor's profile information
             vendor.email = email || vendor.email;
@@ -181,6 +215,11 @@
               vendor.password = hashedPassword;
             }
             vendor.fullName = fullName || vendor.fullName;
+            vendor.streetAddress = streetAddress || vendor.streetAddress;
+            vendor.city = city || vendor.city;
+            vendor.state = state || vendor.state;
+            vendor.country = country || vendor.country;
+            vendor.zipCode = zipCode || vendor.zipCode;
       
             // Save the vendor with the updated profile
             await vendor.save();
@@ -362,18 +401,33 @@
         try {
           // Get the user ID from the request parameter
           const userId = req.params.userId;
-      
+    
           // Find the user by ID
           const user = await User.findById(userId);
           if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            // If the user is not found, try to find a vendor
+            const vendor = await Vendor.findById(userId);
+            if (!vendor) {
+              return res.status(404).json({ message: 'User or vendor not found' });
+            }
+    
+            // Return vendor details with profile picture
+            return res.status(200).json({
+              role: 'vendor',
+              fullName: vendor.fullName,
+              email: vendor.email,
+              profilePicture: vendor.profilePicture,
+              // Add other vendor-specific fields as needed
+            });
           }
-      
+    
           // Return user details with profile picture
           res.status(200).json({
-            fullname: user.fullName,
+            role: 'user',
+            fullName: user.fullName,
             email: user.email,
-            profilePicture: user.profilePicture, 
+            profilePicture: user.profilePicture,
+            // Add other user-specific fields as needed
           });
         } catch (error) {
           console.error('Error getting user details:', error);
