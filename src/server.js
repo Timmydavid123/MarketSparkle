@@ -39,7 +39,8 @@ mongoose.connect(MONGODB_URI, {
 app.use(express.json());
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Replace with your frontend domain
+  origin: 'http://localhost:3001',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
 
