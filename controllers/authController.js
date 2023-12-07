@@ -90,9 +90,10 @@
             } else {
               // Create a regular user
               newUser = await User.create({
+                fullName,
                 email,
                 password,
-                fullName,
+                
                 // Add other user-specific fields as needed
               });
             }
