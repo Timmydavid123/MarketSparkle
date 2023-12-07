@@ -9,6 +9,7 @@
   const axios = require('axios');
   const multer = require('multer');
   const extractUserId = require('../middleware/extractUserId');
+  const cloudinary = require('cloudinary').v2;
   const { User, Vendor } = require('../models/User');
   const {Product} = require('../models/product')
 
@@ -273,7 +274,7 @@
           await user.save();
 
           // Send the password reset email with the token link
-          const resetLink = `https://health-gpt-blush.vercel.app/change-password?token${passwordResetToken}`;
+          const resetLink = `https://frontend reset link/change-password?token${passwordResetToken}`;
           const emailText = `Click on the following link to reset your password: ${resetLink}`;
           await sendEmail(email, 'Password Reset', emailText);
 
@@ -433,7 +434,9 @@
           console.error('Error getting user details:', error);
           res.status(500).json({ message: 'Internal Server Error getting user details' });
         }
-      },
+      },  
+
+
 
       uploadProfilePicture: async (req, res) => {
         try {
@@ -448,11 +451,13 @@
       
           // Check if a file is uploaded
           if (req.file) {
-            // Save the profile picture to your server or cloud storage
-            const profilePicture = req.file.buffer.toString('base64'); // Convert the buffer to base64
-            user.profilePicture = profilePicture;
+            const result = await cloudinary.uploader.upload(
+              req.file.path,
+              { folder: 'profile-pictures' } // Set the folder in Cloudinary
+            );
       
-            // Save the user with the profile picture
+            user.profilePicture = result.secure_url; // Save the URL in the database
+      
             await user.save();
       
             return res.status(200).json({ message: 'Profile picture uploaded successfully' });
@@ -467,7 +472,7 @@
     
       updateProfilePicture: async (req, res) => {
         try {
-          const userId = req.userId; 
+          const userId = req.userId;
           console.log('User ID:', userId);
       
           // Call the multer middleware to handle file upload
@@ -486,11 +491,16 @@
       
               // Check if a file is uploaded
               if (req.file) {
-                // Save the new profile picture to your server or cloud storage
-                const newProfilePicture = req.file.buffer.toString('base64');
-                user.profilePicture = newProfilePicture;
+                const result = await cloudinary.uploader.upload(
+                  req.file.path,
+                  { folder: 'profile-pictures' } // Set the folder in Cloudinary
+                );
       
-                // Save the user with the updated profile picture
+                user.profilePicture = result.secure_url; // Save the new URL in the database
+      
+                // Remove the file from your server after uploading to Cloudinary
+                fs.unlinkSync(req.file.path);
+      
                 await user.save();
       
                 res.status(200).json({ message: 'Profile picture updated successfully' });
@@ -507,6 +517,7 @@
           res.status(500).json({ message: 'Internal Server Error updating profile picture' });
         }
       },
+
       addReview: async (req, res) => {
         try {
           const userId = req.userId; // Assuming customer's user ID is stored in the JWT token

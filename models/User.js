@@ -66,6 +66,27 @@ userSchema.methods.generateAuthToken = function () {
   return token;
 };
 
+userSchema.methods.uploadProfilePicture = async function (fileBuffer) {
+  try {
+    const result = await cloudinary.uploader.upload(fileBuffer, { folder: 'profile-pictures' });
+    this.profilePicture = result.secure_url; // Save the new URL in the database
+    return result;
+  } catch (error) {
+    throw new Error('Error uploading profile picture to Cloudinary');
+  }
+};
+
+// Function to update profile picture to Cloudinary
+userSchema.methods.updateProfilePicture = async function (fileBuffer) {
+  try {
+    const result = await cloudinary.uploader.upload(fileBuffer, { folder: 'profile-pictures' });
+    this.profilePicture = result.secure_url; // Save the new URL in the database
+    return result;
+  } catch (error) {
+    throw new Error('Error updating profile picture on Cloudinary');
+  }
+};
+
 const User = mongoose.model('User', userSchema);
 
 // Create a Vendor model

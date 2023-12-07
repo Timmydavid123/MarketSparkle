@@ -7,13 +7,22 @@ const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
 const extractUserId = require('../middleware/extractUserId')
+const cloudinary = require('cloudinary').v2;
+
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: 'dmlw4ytpo',
+  api_key: '829542326545393',
+  api_secret: 'u9hZkf9oCidRFZxLkii_LUmiJSs',
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 const { MONGODB_URI } = process.env;
 
-console.log('MongoDB Connection URI:', MONGODB_URI);
+// console.log('MongoDB Connection URI:', MONGODB_URI);
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
