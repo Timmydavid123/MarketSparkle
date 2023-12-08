@@ -57,62 +57,62 @@
       }
     }));
 
-    passport.use(new FacebookStrategy({
-      clientID: process.env.FACEBOOK_APP_ID,
-      clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: process.env.FACEBOOK_CALLBACK_URL,
-      profileFields: ['id', 'displayName', 'emails'],
-    }, async (accessToken, refreshToken, profile, done) => {
-      try {
-        // Check if the user already exists in your database by their Facebook ID
-        const existingUser = await User.findOne({ facebookId: profile.id });
+    // passport.use(new FacebookStrategy({
+    //   clientID: process.env.FACEBOOK_APP_ID,
+    //   clientSecret: process.env.FACEBOOK_APP_SECRET,
+    //   callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+    //   profileFields: ['id', 'displayName', 'emails'],
+    // }, async (accessToken, refreshToken, profile, done) => {
+    //   try {
+    //     // Check if the user already exists in your database by their Facebook ID
+    //     const existingUser = await User.findOne({ facebookId: profile.id });
     
-        if (existingUser) {
-          // If the user exists, return the user
-          return done(null, existingUser);
-        }
+    //     if (existingUser) {
+    //       // If the user exists, return the user
+    //       return done(null, existingUser);
+    //     }
     
-        // If the user doesn't exist, create a new user in your database
-        const newUser = await User.create({
-          facebookId: profile.id,
-          email: profile.emails[0].value,
-        });
+    //     // If the user doesn't exist, create a new user in your database
+    //     const newUser = await User.create({
+    //       facebookId: profile.id,
+    //       email: profile.emails[0].value,
+    //     });
     
-        // Return the newly created user
-        return done(null, newUser);
-      } catch (error) {
-        // Handle any errors that occur during the process
-        return done(error, null);
-      }
-    }));
+    //     // Return the newly created user
+    //     return done(null, newUser);
+    //   } catch (error) {
+    //     // Handle any errors that occur during the process
+    //     return done(error, null);
+    //   }
+    // }));
 
-    passport.use(new InstagramStrategy({
-      clientID: process.env.INSTAGRAM_CLIENT_ID,
-      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-      callbackURL: process.env.INSTAGRAM_CALLBACK_URL,
-    }, async (accessToken, refreshToken, profile, done) => {
-      try {
-        // Check if the user already exists in your database by their Instagram ID
-        const existingUser = await User.findOne({ instagramId: profile.id });
+    // passport.use(new InstagramStrategy({
+    //   clientID: process.env.INSTAGRAM_CLIENT_ID,
+    //   clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
+    //   callbackURL: process.env.INSTAGRAM_CALLBACK_URL,
+    // }, async (accessToken, refreshToken, profile, done) => {
+    //   try {
+    //     // Check if the user already exists in your database by their Instagram ID
+    //     const existingUser = await User.findOne({ instagramId: profile.id });
     
-        if (existingUser) {
-          // If the user exists, return the user
-          return done(null, existingUser);
-        }
+    //     if (existingUser) {
+    //       // If the user exists, return the user
+    //       return done(null, existingUser);
+    //     }
     
-        // If the user doesn't exist, create a new user in your database
-        const newUser = await User.create({
-          instagramId: profile.id,
-          // Extract other relevant information from the profile if needed
-        });
+    //     // If the user doesn't exist, create a new user in your database
+    //     const newUser = await User.create({
+    //       instagramId: profile.id,
+    //       // Extract other relevant information from the profile if needed
+    //     });
     
-        // Return the newly created user
-        return done(null, newUser);
-      } catch (error) {
-        // Handle any errors that occur during the process
-        return done(error, null);
-      }
-    }));
+    //     // Return the newly created user
+    //     return done(null, newUser);
+    //   } catch (error) {
+    //     // Handle any errors that occur during the process
+    //     return done(error, null);
+    //   }
+    // }));
     
       const authController = {
         signup: async (req, res) => {
