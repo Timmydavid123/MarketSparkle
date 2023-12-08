@@ -43,10 +43,14 @@ const corsOptions = {
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
+  allowedHeaders: 'Content-Type, Authorization',
 };
-app.use(cors(corsOptions));
+
 // Handle preflight requests
 app.options('*', cors(corsOptions));
+
+// Use the CORS middleware for all routes
+app.use(cors(corsOptions));
 
 app.use(express.urlencoded({extended: false}))
 app.use(extractUserId);
