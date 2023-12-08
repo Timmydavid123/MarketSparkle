@@ -12,8 +12,10 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
+router.post('/api/signup/user', authController.userSignup);
+router.post('/api/signup/vendor', authController.vendorSignup);
+router.post('/api/login/user', authController.userLogin);
+router.post('/api/login/vendor', authController.vendorLogin);
 router.get('/vendor-profile', extractUserId, checkTokenExpiration, async (req, res) => {
   try {
     // Ensure that the user is a vendor

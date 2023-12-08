@@ -115,9 +115,9 @@
     // }));
     
       const authController = {
-        signup: async (req, res) => {
+        userSignup: async (req, res) => {
           try {
-            const { email, password, confirmPassword, fullName, role, streetAddress, city, state, country, zipCode } = req.body;
+            const { email, password, confirmPassword, fullName, streetAddress, city, state, country, zipCode } = req.body;
       
             // Check if the passwords match
             if (password !== confirmPassword) {
@@ -130,32 +130,13 @@
               return res.status(400).json({ message: 'User already exists with this email.' });
             }
       
-            // Create a new user based on the specified role
-            let newUser;
-      
-            if (role === 'vendor') {
-              // Create a vendor
-              newUser = await Vendor.create({
-                email,
-                password,
-                fullName,
-                streetAddress,
-                city,
-                state,
-                country,
-                zipCode,
-                // Add other vendor-specific fields as needed
-              });
-            } else {
-              // Create a regular user
-              newUser = await User.create({
-                fullName,
-                email,
-                password,
-                
-                // Add other user-specific fields as needed
-              });
-            }
+            // Create a new user
+            const newUser = await User.create({
+              fullName,
+              email,
+              password,
+              // Add other user-specific fields as needed
+            });
       
             // Optionally, generate a token for the newly signed up user
             const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '1d' });
@@ -171,48 +152,127 @@
             const emailText = `Your OTP for email verification is: ${emailVerificationOTP}`;
             await sendEmail(email, 'Email Verification OTP', emailText);
       
-            res.status(201).json({ message: 'Signup successful. Email verification OTP sent.' });
+            res.status(201).json({ message: 'User signup successful. Email verification OTP sent.' });
           } catch (error) {
-            console.error('Error during signup:', error);
-            res.status(500).json({ message: 'Internal Server Error during signup' });
+            console.error('Error during user signup:', error);
+            res.status(500).json({ message: 'Internal Server Error during user signup' });
           }
         },
       
-        login: async (req, res) => {
+        vendorSignup: async (req, res) => {
+          try {
+            const { email, password, confirmPassword, fullName, streetAddress, city, state, country, zipCode } = req.body;
+      
+            // Check if the passwords match
+            if (password !== confirmPassword) {
+              return res.status(400).json({ message: 'Passwords do not match.' });
+            }
+      
+            // Check if the vendor already exists
+            const existingVendor = await Vendor.findOne({ email });
+            if (existingVendor) {
+              return res.status(400).json({ message: 'Vendor already exists with this email.' });
+            }
+      
+            // Create a new vendor
+            const newVendor = await Vendor.create({
+              email,
+              password,
+              fullName,
+              streetAddress,
+              city,
+              state,
+              country,
+              zipCode,
+              // Add other vendor-specific fields as needed
+            });
+      
+            // Optionally, generate a token for the newly signed up vendor
+            const token = jwt.sign({ userId: newVendor._id }, JWT_SECRET, { expiresIn: '1d' });
+      
+            // Generate an OTP for email verification
+            const emailVerificationOTP = otpGenerator.generate(6, { upperCase: false, specialChars: false });
+      
+            // Save the OTP in the vendor document
+            newVendor.emailVerificationOTP = emailVerificationOTP;
+            await newVendor.save();
+      
+            // Send the OTP to the vendor's email
+            const emailText = `Your OTP for email verification is: ${emailVerificationOTP}`;
+            await sendEmail(email, 'Email Verification OTP', emailText);
+      
+            res.status(201).json({ message: 'Vendor signup successful. Email verification OTP sent.' });
+          } catch (error) {
+            console.error('Error during vendor signup:', error);
+            res.status(500).json({ message: 'Internal Server Error during vendor signup' });
+          }
+        },
+      
+        userLogin: async (req, res) => {
           try {
             const { email, password } = req.body;
-        
-            // Determine if the user is a regular user or a vendor
+      
+            // Find the regular user
             const user = await User.findOne({ email });
-            const vendor = await Vendor.findOne({ email });
-        
-            // Check if either a regular user or a vendor is found
-            if (user || vendor) {
-              // Choose the appropriate model based on the role
-              const userModel = user || vendor;
-        
+      
+            // Check if the regular user is found
+            if (user) {
               // Check if the user is verified
-              if (!userModel.isVerified) {
+              if (!user.isVerified) {
                 return res.status(401).json({ message: 'Email not verified. Please verify your email.' });
               }
-        
+      
               // Check the password
-              const validPassword = await userModel.comparePassword(password);
+              const validPassword = await user.comparePassword(password);
               if (!validPassword) {
                 return res.status(401).json({ message: 'Invalid password' });
               }
-        
+      
               // Generate a JWT token with expiration time set to 1 day
-              const token = userModel.generateAuthToken();
-        
+              const token = user.generateAuthToken();
+      
               // Send the token in the response
               res.json({ token, message: 'Login successful' });
             } else {
               return res.status(404).json({ message: 'User not found' });
             }
           } catch (error) {
-            console.error('Error during login:', error);
-            res.status(500).json({ message: 'Internal Server Error during login' });
+            console.error('Error during user login:', error);
+            res.status(500).json({ message: 'Internal Server Error during user login' });
+          }
+        },
+      
+        vendorLogin: async (req, res) => {
+          try {
+            const { email, password } = req.body;
+      
+            // Find the vendor
+            const vendor = await Vendor.findOne({ email });
+      
+            // Check if the vendor is found
+            if (vendor) {
+              // Check if the vendor is verified
+              if (!vendor.isVerified) {
+                return res.status(401).json({ message: 'Email not verified. Please verify your email.' });
+              }
+      
+              // Check the password
+              const validPassword = await vendor.comparePassword(password);
+              if (!validPassword) {
+                return res.status(401).json({ message: 'Invalid password' });
+              }
+      
+              // Generate a JWT token with expiration time set to 1 day
+              const token = vendor.generateAuthToken();
+      
+              // Send the token in the response
+              res.json({ token, message: 'Login successful' });
+            } else {
+              return res.status(404).json({ message: 'Vendor not found' });
+            }
+          } catch (error) {
+            console.error('Error during vendor login:', error);
+            res.status(500).json({ message: 'Internal Server Error during vendor login' });
           }
         },
 
@@ -542,42 +602,36 @@
               return res.status(400).json({ message: 'Error uploading file' });
             }
       
-            try {
-              // Find the user by ID
-              const user = await User.findById(userId);
-              if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-              }
-      
-              // Check if a file is uploaded
-              if (req.file) {
-                const result = await cloudinary.uploader.upload(
-                  req.file.path,
-                  { folder: 'profile-pictures' } // Set the folder in Cloudinary
-                );
-      
-                user.profilePicture = result.secure_url; // Save the new URL in the database
-      
-                // Remove the file from your server after uploading to Cloudinary
-                fs.unlinkSync(req.file.path);
-      
-                await user.save();
-      
-                res.status(200).json({ message: 'Profile picture updated successfully' });
-              } else {
-                return res.status(400).json({ message: 'No file uploaded' });
-              }
-            } catch (error) {
-              console.error('Error updating profile picture:', error);
-              res.status(500).json({ message: 'Internal Server Error updating profile picture' });
+            // Find the user by ID
+            const user = await User.findById(userId);
+            if (!user) {
+              return res.status(404).json({ message: 'User not found' });
             }
+      
+            // Check if a file is uploaded
+            if (!req.file) {
+              return res.status(400).json({ message: 'No file uploaded' });
+            }
+      
+            const result = await cloudinary.uploader.upload(
+              req.file.path,
+              { folder: 'profile-pictures' } // Set the folder in Cloudinary
+            );
+      
+            user.profilePicture = result.secure_url; // Save the new URL in the database
+      
+            // Remove the file from your server after uploading to Cloudinary
+            fs.unlinkSync(req.file.path);
+      
+            await user.save();
+      
+            res.status(200).json({ message: 'Profile picture updated successfully' });
           });
         } catch (error) {
           console.error('Error updating profile picture:', error);
           res.status(500).json({ message: 'Internal Server Error updating profile picture' });
         }
       },
-
       addReview: async (req, res) => {
         try {
           const userId = req.userId; // Assuming customer's user ID is stored in the JWT token
