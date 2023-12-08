@@ -39,7 +39,7 @@ mongoose.connect(MONGODB_URI, {
 app.use(express.json());
 
 const corsOptions = {
-  origin: 'http://localhost:3001',
+  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,

@@ -46,14 +46,41 @@ router.put('/update-vendor-profile', extractUserId, authController.updateVendorP
 // Route to get user orders/payment transactions
 router.get('/user-orders', extractUserId, authController.getUserOrders);
 
-// New routes for Google authentication
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 
-// Callback route after successful Google Sign-In
-router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  // Redirect to the desired page after successful Google Sign-In
-  res.redirect('/chat');
-});
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication, redirect to a success page or send a response
+    res.redirect('/');
+  }
+);
+
+router.get('/auth/facebook',
+  passport.authenticate('facebook', { scope: ['email'] })
+);
+
+router.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication, redirect to a success page or send a response
+    res.redirect('/');
+  }
+);
+
+router.get('/auth/instagram',
+  passport.authenticate('instagram')
+);
+
+router.get('/auth/instagram/callback',
+  passport.authenticate('instagram', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful authentication, redirect to a success page or send a response
+    res.redirect('/');
+  }
+);
 
 // New routes for profile picture
 router.post('/upload-profile-picture', extractUserId, upload.single('profilePicture'), authController.uploadProfilePicture);
