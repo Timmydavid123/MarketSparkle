@@ -38,12 +38,13 @@ mongoose.connect(MONGODB_URI, {
 // Middleware
 app.use(express.json());
 
-app.use(cors({
+const corsOptions = {
   origin: 'http://localhost:3001',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
-}));
-
+  optionsSuccessStatus: 204,
+};
+app.use(cors(corsOptions));
 app.use(express.urlencoded({extended: false}))
 app.use(extractUserId);
 
