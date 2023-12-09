@@ -117,7 +117,7 @@
       const authController = {
         userSignup: async (req, res) => {
           try {
-            const { email, password, confirmPassword, fullName, streetAddress, city, state, country, zipCode } = req.body;
+            const {fullName, email, password, confirmPassword } = req.body;
       
             // Check if the passwords match
             if (password !== confirmPassword) {
@@ -161,7 +161,7 @@
       
         vendorSignup: async (req, res) => {
           try {
-            const { email, password, confirmPassword, fullName, streetAddress, city, state, country, zipCode } = req.body;
+            const { fullName, email, password, confirmPassword, streetAddress, city, state, country, zipCode } = req.body;
       
             // Check if the passwords match
             if (password !== confirmPassword) {
@@ -176,9 +176,9 @@
       
             // Create a new vendor
             const newVendor = await Vendor.create({
+              fullName,
               email,
               password,
-              fullName,
               streetAddress,
               city,
               state,
