@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController'); 
+const productController=require('../controllers/productController')
 const passport = require('passport');
 const extractUserId = require('../middleware/extractUserId');
 const checkTokenExpiration = require('../middleware/checkTokenExpiration');
@@ -39,6 +40,7 @@ router.get('/logout', authController.logout);
 router.post('/resend-otp', authController.resendOTP);
 router.get('/user', extractUserId, authController.getUser);
 router.get('/users/:userId', authController.getUser);
+router.get('/users/:vendorId', authController.getUser);
 
 // Route to update user profile
 router.put('/update-profile', extractUserId, authController.updateUserProfile);
@@ -87,5 +89,11 @@ router.get('/auth/instagram/callback',
 // New routes for profile picture
 router.post('/upload-profile-picture', extractUserId, upload.single('profilePicture'), authController.uploadProfilePicture);
 router.post('/update-profile-picture/:userId', extractUserId, upload.single('profilePicture'), authController.updateProfilePicture);
+
+// Product routes
+router.post('/create-product', extractUserId, productController.createProduct);
+router.put('/update-product/:productId', extractUserId, productController.updateProduct);
+router.get('/edit-product/:productId', extractUserId, productController.editProduct); // New route for editing
+router.delete('/delete-product/:productId', extractUserId, productController.deleteProduct);
 
 module.exports = router;

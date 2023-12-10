@@ -1,5 +1,3 @@
-// extractUserId.js
-
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -13,9 +11,14 @@ const extractUserId = (req, res, next) => {
       return next();
     }
 
-    // If a token is provided, extract the user ID
+    // If a token is provided, extract the user ID and vendor ID (if available)
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
+    
+    // Assuming your JWT payload includes vendorId, update the line below
+    // based on your actual payload structure
+    req.vendorId = decoded.vendorId || null;
+
     next();
   } catch (error) {
     console.error('Error extracting user ID:', error);

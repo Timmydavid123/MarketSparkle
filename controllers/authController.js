@@ -29,33 +29,33 @@
       });
     });
 
-    passport.use(new GoogleStrategy({
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    }, async (accessToken, refreshToken, profile, done) => {
-      try {
-        // Check if the user already exists in your database by their Google ID
-        const existingUser = await User.findOne({ googleId: profile.id });
+    // passport.use(new GoogleStrategy({
+    //   clientID: process.env.GOOGLE_CLIENT_ID,
+    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    //   callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    // }, async (accessToken, refreshToken, profile, done) => {
+    //   try {
+    //     // Check if the user already exists in your database by their Google ID
+    //     const existingUser = await User.findOne({ googleId: profile.id });
     
-        if (existingUser) {
-          // If the user exists, return the user
-          return done(null, existingUser);
-        }
+    //     if (existingUser) {
+    //       // If the user exists, return the user
+    //       return done(null, existingUser);
+    //     }
     
-        // If the user doesn't exist, create a new user in your database
-        const newUser = await User.create({
-          googleId: profile.id,
-          email: profile.emails[0].value,
-        });
+    //     // If the user doesn't exist, create a new user in your database
+    //     const newUser = await User.create({
+    //       googleId: profile.id,
+    //       email: profile.emails[0].value,
+    //     });
     
-        // Return the newly created user
-        return done(null, newUser);
-      } catch (error) {
-        // Handle any errors that occur during the process
-        return done(error, null);
-      }
-    }));
+    //     // Return the newly created user
+    //     return done(null, newUser);
+    //   } catch (error) {
+    //     // Handle any errors that occur during the process
+    //     return done(error, null);
+    //   }
+    // }));
 
     // passport.use(new FacebookStrategy({
     //   clientID: process.env.FACEBOOK_APP_ID,
@@ -141,8 +141,8 @@
             // Optionally, generate a token for the newly signed up user
             const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '1d' });
       
-            // Generate an OTP for email verification
-            const emailVerificationOTP = otpGenerator.generate(6, { upperCase: false, specialChars: false });
+          // Generate a new 4-digit OTP
+          const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
       
             // Save the OTP in the user document
             newUser.emailVerificationOTP = emailVerificationOTP;
@@ -188,10 +188,10 @@
             });
       
             // Optionally, generate a token for the newly signed up vendor
-            const token = jwt.sign({ userId: newVendor._id }, JWT_SECRET, { expiresIn: '1d' });
+            const token = jwt.sign({ vendorId: newVendor._id }, JWT_SECRET, { expiresIn: '1d' });
       
-            // Generate an OTP for email verification
-            const emailVerificationOTP = otpGenerator.generate(6, { upperCase: false, specialChars: false });
+          // Generate a new 4-digit OTP
+          const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
       
             // Save the OTP in the vendor document
             newVendor.emailVerificationOTP = emailVerificationOTP;
@@ -311,23 +311,23 @@
       
         updateVendorProfile: async (req, res) => {
           try {
-            const userId = req.userId; // Extracted from the JWT token using extractUserId middleware
-            console.log('User ID:', userId);
-      
+            const vendorId = req.vendorId; // Extracted from the JWT token using extractUserId middleware
+            console.log('Vendor Id:', vendorId);
+        
             // Find the vendor by ID
-            const vendor = await Vendor.findById(userId);
+            const vendor = await Vendor.findById(vendorId); 
             if (!vendor) {
               return res.status(404).json({ message: 'Vendor not found' });
             }
-      
+        
             // Extract updated profile information from the request body
             const { email, password, confirmPassword, fullName, streetAddress, city, state, country, zipCode } = req.body;
-      
+        
             // Check if the passwords match
             if (password !== confirmPassword) {
               return res.status(400).json({ message: 'Passwords do not match.' });
             }
-      
+        
             // Update the vendor's profile information
             vendor.email = email || vendor.email;
             if (password) {
@@ -341,16 +341,17 @@
             vendor.state = state || vendor.state;
             vendor.country = country || vendor.country;
             vendor.zipCode = zipCode || vendor.zipCode;
-      
+        
             // Save the vendor with the updated profile
             await vendor.save();
-      
+        
             res.status(200).json({ message: 'Vendor profile updated successfully' });
           } catch (error) {
             console.error('Error updating vendor profile:', error);
             res.status(500).json({ message: 'Internal Server Error updating vendor profile' });
           }
         },
+        
 
         getUserOrders: async (req, res) => {
           try {
@@ -374,70 +375,85 @@
           }
         },
 
-      forgotPassword: async (req, res) => {
-        try {
-          const { email } = req.body;
-
-          // Check if the user exists
-          const user = await User.findOne({ email });
-          if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+        forgotPassword: async (req, res) => {
+          try {
+            const { email } = req.body;
+        
+            // Check if the user or vendor exists
+            const user = await User.findOne({ email });
+            const vendor = await Vendor.findOne({ email });
+            if (!user && !vendor) {
+              return res.status(404).json({ message: 'User or vendor not found' });
+            }
+        
+            // Determine whether to use User or Vendor model based on your application structure
+            // For example, if you have a unified User model, use that directly
+            const userData = user || vendor;
+        
+            // Generate a password reset token 
+            const passwordResetToken = uuid.v4();
+        
+            // Save the password reset token and its expiration time in the user or vendor document
+            userData.passwordResetToken = passwordResetToken;
+            userData.passwordResetTokenExpiration = Date.now() + 3600000; // Token expires in 1 hour
+        
+            await userData.save();
+        
+            // Send the password reset email with the token link
+            const resetLink = `https://frontend-reset-link/change-password?token=${passwordResetToken}`;
+            const emailText = `Click on the following link to reset your password: ${resetLink}`;
+            await sendEmail(email, 'Password Reset', emailText);
+        
+            res.status(200).json({ message: 'Password reset instructions sent. Check your email.' });
+          } catch (error) {
+            console.error(error);
+            res.status(500).send('Internal Server Error');
           }
+        },
 
-          // Generate a password reset token
-          const passwordResetToken = uuid.v4();
-
-          // Save the password reset token and its expiration time in the user document
-          user.passwordResetToken = passwordResetToken;
-          user.passwordResetTokenExpiration = Date.now() + 3600000; // Token expires in 1 hour
-
-          await user.save();
-
-          // Send the password reset email with the token link
-          const resetLink = `https://frontend reset link/change-password?token${passwordResetToken}`;
-          const emailText = `Click on the following link to reset your password: ${resetLink}`;
-          await sendEmail(email, 'Password Reset', emailText);
-
-          res.status(200).json({ message: 'Password reset instructions sent. Check your email.' });
-        } catch (error) {
-          console.error(error);
-          res.status(500).send('Internal Server Error');
-        }
-      },
-
-      resetPassword: async (req, res) => {
-        try {
-          const { token, newPassword, confirmPassword } = req.body;
-
-          // Find the user by the reset token
-          const user = await User.findOne({ passwordResetToken: token });
-
-          // Check if the token is valid and not expired
-          if (!user || user.passwordResetTokenExpiration < Date.now()) {
-            return res.status(401).json({ message: 'Invalid or expired token' });
-          }
-
-          // Check if passwords match
-          if (newPassword !== confirmPassword) {
-            return res.status(400).json({ message: 'Passwords do not match' });
-          }
-
-          // Hash the new password
-          const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-          // Update the user's password and clear the reset token fields
-          user.password = hashedPassword;
-          user.passwordResetToken = undefined;
-          user.passwordResetTokenExpiration = undefined;
-
-          await user.save();
-
-          res.status(200).json({ message: 'Password reset successful' });
-        } catch (error) {
-          console.error(error);
-          res.status(500).send('Internal Server Error');
-        }
-      },
+// resetPassword: async (req, res) => {
+  resetPassword: async (req, res) => {
+    try {
+      const { token, newPassword, confirmPassword } = req.body;
+  
+      // Determine whether to use User or Vendor model based on your application structure
+      // For example, if you have a unified User model, use that directly
+      const user = await User.findOne({ passwordResetToken: token }); 
+      const vendor = await Vendor.findOne({ passwordResetToken: token });
+  
+      // Check if the token is valid and not expired
+      if (!user && !vendor) {
+        return res.status(401).json({ message: 'Invalid or expired token' });
+      }
+  
+      // Check if passwords match
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ message: 'Passwords do not match' });
+      }
+  
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+      // Update the user's or vendor's password and clear the reset token fields
+      if (user) {
+        user.password = hashedPassword;
+        user.passwordResetToken = undefined;
+        user.passwordResetTokenExpiration = undefined;
+        await user.save();
+      } else if (vendor) {
+        vendor.password = hashedPassword;
+        vendor.passwordResetToken = undefined;
+        vendor.passwordResetTokenExpiration = undefined;
+        await vendor.save();
+      }
+  
+      res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+  
 
       logout: (req, res) => {
         try {
@@ -459,28 +475,29 @@
       
 
       verifyEmail: async (req, res) => {
+        const { email, otp } = req.body;
+
         try {
-          // Implement your email verification logic here
-          // Example: compare the received OTP with the stored OTP
-          const { email, otp } = req.body;
-      
-          // Retrieve the stored OTP from your database or any storage mechanism
-          // Example: Fetch the user from the database
+          // Retrieve the user from the database
           const user = await User.findOne({ email });
-      
-          if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+          const vendor = await Vendor.findOne({ email });
+        
+          if (!user && !vendor) {
+            return res.status(404).json({ message: 'User or vendor not found' });
           }
-      
-          // Retrieve the stored OTP from the user document in the database
-          const storedEmailVerificationOTP = user.emailVerificationOTP;
-      
+        
+          // Determine the type of user (user or vendor) and fetch the appropriate document
+          const userData = user || vendor;
+        
+          // Retrieve the stored OTP from the user or vendor document in the database
+          const storedEmailVerificationOTP = userData.emailVerificationOTP;
+        
           if (otp === storedEmailVerificationOTP) {
-            // Update the user's email verification status in the database
+            // Update the user's or vendor's email verification status in the database
             // For example: await User.updateOne({ email }, { isVerified: true });
-            user.isVerified = true;
-            await user.save();
-      
+            userData.isVerified = true;
+            await userData.save();
+        
             res.status(200).json({ message: 'Email verified successfully.' });
           } else {  
             res.status(401).json({ message: 'Invalid OTP. Email verification failed.' });
@@ -489,28 +506,33 @@
           console.error(error);
           res.status(500).send('Internal Server Error');
         }
-
       },
       resendOTP: async (req, res) => {
         try {
           const { email } = req.body;
-    
-          // Find the user by email
+      
+          // Find the user or vendor by email
           const user = await User.findOne({ email });
-          if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+          const vendor = await Vendor.findOne({ email });
+          if (!user && !vendor) {
+            return res.status(404).json({ message: 'User or vendor not found' });
           }
-    
-          // Generate a new OTP
-          const newOTP = otpGenerator.generate(6, { upperCase: false, specialChars: false });
-    
-          // Update the user's OTP in the database
-          user.emailVerificationOTP = newOTP;
-          await user.save();
-    
-          // Send the new OTP to the user's email
+      
+          // Determine whether to use User or Vendor model based on your application structure
+          // For example, if you have a unified User model, use that directly
+          const userData = user || vendor;
+      
+       
+          // Generate a new 4-digit OTP
+          const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
+      
+          // Update the user's or vendor's OTP in the database
+          userData.emailVerificationOTP = newOTP;
+          await userData.save();
+      
+          // Send the new OTP to the user's or vendor's email
           await sendEmail(email, 'Email Verification OTP', `Your new OTP is: ${newOTP}`);
-    
+      
           res.status(200).json({ message: 'New OTP sent successfully.' });
         } catch (error) {
           console.error('Error during OTP resend:', error);
@@ -518,43 +540,44 @@
         }
       },
 
-      getUser: async (req, res) => {
-        try {
-          // Get the user ID from the request parameter
-          const userId = req.params.userId;
-    
-          // Find the user by ID
-          const user = await User.findById(userId);
-          if (!user) {
-            // If the user is not found, try to find a vendor
-            const vendor = await Vendor.findById(userId);
-            if (!vendor) {
-              return res.status(404).json({ message: 'User or vendor not found' });
-            }
-    
-            // Return vendor details with profile picture
-            return res.status(200).json({
-              role: 'vendor',
-              fullName: vendor.fullName,
-              email: vendor.email,
-              profilePicture: vendor.profilePicture,
-              // Add other vendor-specific fields as needed
-            });
-          }
-    
-          // Return user details with profile picture
-          res.status(200).json({
-            role: 'user',
-            fullName: user.fullName,
-            email: user.email,
-            profilePicture: user.profilePicture,
-            // Add other user-specific fields as needed
-          });
-        } catch (error) {
-          console.error('Error getting user details:', error);
-          res.status(500).json({ message: 'Internal Server Error getting user details' });
-        }
-      },  
+ getUser: async (req, res) => {
+  try {
+    // Get the user ID or vendor ID from the request parameter
+    const userId = req.params.userId;
+    const vendorId = req.params.vendorId;
+
+    // Find the user or vendor by ID
+    const user = await User.findById(userId);
+    const vendor = await Vendor.findById(vendorId);
+
+    if (!user && !vendor) {
+      return res.status(404).json({ message: 'User or vendor not found' });
+    }
+
+    if (user) {
+      // Return user details with profile picture
+      res.status(200).json({
+        role: 'user',
+        fullName: user.fullName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        // Add other user-specific fields as needed
+      });
+    } else {
+      // Return vendor details with profile picture
+      res.status(200).json({
+        role: 'vendor',
+        fullName: vendor.fullName,
+        email: vendor.email,
+        profilePicture: vendor.profilePicture,
+        // Add other vendor-specific fields as needed
+      });
+    }
+  } catch (error) {
+    console.error('Error getting user details:', error);
+    res.status(500).json({ message: 'Internal Server Error getting user details' });
+  }
+},
 
 
 
