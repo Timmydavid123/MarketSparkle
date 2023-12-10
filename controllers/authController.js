@@ -149,9 +149,9 @@
             await newUser.save();
       
             // Send the OTP to the user's email
-            const emailText = `Your OTP for email verification is: ${emailVerificationOTP}`;
+            const emailText = `Your OTP for email verification is: ${newOTP}`;
             await sendEmail(email, 'Email Verification OTP', emailText);
-      
+
             res.status(201).json({ message: 'User signup successful. Email verification OTP sent.' });
           } catch (error) {
             console.error('Error during user signup:', error);
@@ -198,7 +198,7 @@
             await newVendor.save();
       
             // Send the OTP to the vendor's email
-            const emailText = `Your OTP for email verification is: ${emailVerificationOTP}`;
+            const emailText = `Your OTP for email verification is: ${newOTP}`;
             await sendEmail(email, 'Email Verification OTP', emailText);
       
             res.status(201).json({ message: 'Vendor signup successful. Email verification OTP sent.' });
