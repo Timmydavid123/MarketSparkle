@@ -145,7 +145,7 @@
           const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
       
             // Save the OTP in the user document
-            newUser.emailVerificationOTP = emailVerificationOTP;
+            newUser.emailVerificationOTP = newOTP;
             await newUser.save();
       
             // Send the OTP to the user's email
@@ -194,7 +194,7 @@
           const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
       
             // Save the OTP in the vendor document
-            newVendor.emailVerificationOTP = emailVerificationOTP;
+            newUser.emailVerificationOTP = newOTP;
             await newVendor.save();
       
             // Send the OTP to the vendor's email
