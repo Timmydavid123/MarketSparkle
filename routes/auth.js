@@ -6,6 +6,7 @@ const extractUserId = require('../middleware/extractUserId');
 const checkTokenExpiration = require('../middleware/checkTokenExpiration');
 const multer = require('multer');
 const { User, Vendor } = require('../models/User');
+const paymentLogic = require('../models/payment');
 
 const router = express.Router();
 
@@ -95,5 +96,33 @@ router.post('/create-product', extractUserId, productController.createProduct);
 router.put('/update-product/:productId', extractUserId, productController.updateProduct);
 router.get('/edit-product/:productId', extractUserId, productController.editProduct); // New route for editing
 router.delete('/delete-product/:productId', extractUserId, productController.deleteProduct);
+
+
+
+router.post('/makePayment', async (req, res) => {
+  const { paymentType, cardToken, sourceAccountNumber, destinationAccountNumber } = req.body;
+
+  try {
+    if (paymentType === 'transfer') {
+      // Handle transfer payment
+      const paymentResult = await paymentLogic.processTransfer(sourceAccountNumber, destinationAccountNumber);
+      res.status(200).json(paymentResult);
+    } else if (paymentType === 'card') {
+      // Handle card payment
+      const paymentResult = await paymentLogic.processCardPayment(cardToken);
+      res.status(200).json(paymentResult);
+    } else if (paymentType === 'flutterwave') {
+      // Handle Flutterwave payment
+      const { amount, email, phoneNumber } = req.body;
+      const paymentResult = await paymentLogic.processFlutterwavePayment(amount, email, phoneNumber);
+      res.status(200).json(paymentResult);
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid payment type' });
+    }
+  } catch (error) {
+    console.error('Error processing payment:', error.message);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
 
 module.exports = router;

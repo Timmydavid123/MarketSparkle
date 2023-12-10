@@ -8,6 +8,7 @@ const passport = require('passport');
 const session = require('express-session');
 const extractUserId = require('../middleware/extractUserId')
 const cloudinary = require('cloudinary').v2;
+const paymentLogic = require('../models/payment');
 
 
 // Configure Cloudinary
