@@ -26,7 +26,7 @@ const productController = {
       });
 
       // Send product information to the homepage
-      await axios.post('http://localhost:3000/homepage/products', {
+      await axios.post('http://localhost:5000/homepage/products', {
         id: product._id,
         name: product.name,
         image: product.images[0], 
