@@ -21,7 +21,7 @@ router.post('/login/vendor', authController.vendorLogin);
 router.get('/vendor-profile', extractUserId, checkTokenExpiration, async (req, res) => {
   try {
     // Ensure that the user is a vendor
-    const vendor = await Vendor.findById(req.userId);
+    const vendor = await Vendor.findById(req.vendorId);
 
     if (!vendor) {
       return res.status(403).json({ message: 'Unauthorized. Only vendors can access this route.' });

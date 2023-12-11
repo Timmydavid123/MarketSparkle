@@ -475,62 +475,52 @@
       
 
       verifyUserEmail: async (req, res) => {
-        const { email, otp } = req.body;
+        const {  otp } = req.body;
       
         try {
           // Retrieve the user from the database
-          const user = await User.findOne({ email });
+          const user = await User.findOne({ emailVerificationOTP: otp });
       
           if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found or invalid OTP' });
           }
       
           // Retrieve the stored OTP from the user document in the database
           const storedEmailVerificationOTP = user.emailVerificationOTP;
       
-          if (otp === storedEmailVerificationOTP) {
             // Update the user's email verification status in the database
             user.isVerified = true;
             await user.save();
-      
+
             res.status(200).json({ message: 'Email verified successfully.' });
-          } else {  
-            res.status(401).json({ message: 'Invalid OTP. Email verification failed.' });
+          } catch (error) {
+            console.error(error);
+            res.status(500).send('Internal Server Error');
           }
-        } catch (error) {
-          console.error(error);
-          res.status(500).send('Internal Server Error');
-        }
-      },
+        },
 
       verifyVendorEmail: async (req, res) => {
         const { email, otp } = req.body;
       
         try {
           // Retrieve the vendor from the database
-          const vendor = await Vendor.findOne({ email });
+          const vendor = await Vendor.findOne({ emailVerificationOTP: otp });
       
           if (!vendor) {
-            return res.status(404).json({ message: 'Vendor not found' });
+            return res.status(404).json({ message: 'Vendor not found or invalid OTP' });
           }
       
-          // Retrieve the stored OTP from the vendor document in the database
-          const storedEmailVerificationOTP = vendor.emailVerificationOTP;
-      
-          if (otp === storedEmailVerificationOTP) {
-            // Update the vendor's email verification status in the database
+            // Update the user's email verification status in the database
             vendor.isVerified = true;
-            await vendor.save();
-      
+            await user.save();
+
             res.status(200).json({ message: 'Email verified successfully.' });
-          } else {  
-            res.status(401).json({ message: 'Invalid OTP. Email verification failed.' });
+          } catch (error) {
+            console.error(error);
+            res.status(500).send('Internal Server Error');
           }
-        } catch (error) {
-          console.error(error);
-          res.status(500).send('Internal Server Error');
-        }
-      },
+        },
+
 
       resendOTP: async (req, res) => {
         try {
