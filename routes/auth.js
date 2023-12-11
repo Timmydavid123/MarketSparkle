@@ -7,6 +7,8 @@ const checkTokenExpiration = require('../middleware/checkTokenExpiration');
 const multer = require('multer');
 const { User, Vendor } = require('../models/User');
 const paymentLogic = require('../models/payment');
+const chatController = require('../controllers/chatController');
+const ChatMessage = require('../models/ChatMessage');
 
 const router = express.Router();
 
@@ -146,6 +148,19 @@ router.post('/make-flutterwave-payment', async (req, res) => {
   } catch (error) {
     console.error('Error processing Flutterwave payment:', error.message);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+router.post('/send_message', chatController.sendMessage);
+
+// New route for retrieving products for the homepage
+router.get('/homepage/products', async (req, res) => {
+  try {
+    const products = await Product.find().limit(10); // Limit the number of products as needed
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products for homepage:', error);
+    res.status(500).json({ error: 'Internal Server Error fetching products for homepage' });
   }
 });
 

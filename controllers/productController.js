@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const axios = require('axios'); 
 
 const productController = {
   createProduct: async (req, res) => {
@@ -24,12 +25,21 @@ const productController = {
         isPublished,
       });
 
+      // Send product information to the homepage
+      await axios.post('http://localhost:3000/homepage/products', {
+        id: product._id,
+        name: product.name,
+        image: product.images[0], 
+        amount: product.price,
+      });
+
       res.status(201).json(product);
     } catch (error) {
       console.error('Error creating product:', error);
       res.status(500).json({ message: 'Internal Server Error creating product' });
     }
   },
+
 
 
   editProduct: async (req, res) => {
