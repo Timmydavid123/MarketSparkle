@@ -35,7 +35,8 @@ router.get('/vendor-profile', extractUserId, checkTokenExpiration, async (req, r
   }
 });
 router.post('/forgot-password', authController.forgotPassword);
-router.post('/verify-email', authController.verifyEmail);
+router.post('/verify-email-user', authController.verifyUserEmail);
+router.post('/verify-email-vendor', authController.verifyVendorEmail);
 router.post('/reset-password', authController.resetPassword);
 router.get('/logout', authController.logout);
 router.post('/resend-otp', authController.resendOTP);
