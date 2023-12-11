@@ -5,7 +5,7 @@ const productController = {
   createProduct: async (req, res) => {
     try {
       const { name, description, category, subCategory, price, isPublished } = req.body;
-      const vendorId = req.userId; // Assuming the user is a vendor
+      const vendorId = req.vendorId; // Assuming the user is a vendor
       const images = [];
 
       // Assuming req.files is an array of image files
