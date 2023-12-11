@@ -99,28 +99,51 @@ router.delete('/delete-product/:productId', extractUserId, productController.del
 
 
 
-router.post('/makePayment', async (req, res) => {
-  const { paymentType, cardToken, sourceAccountNumber, destinationAccountNumber } = req.body;
+router.post('/make-transfer', async (req, res) => {
+  const { AccountNumber, Bank, AccountName } = req.body;
 
   try {
-    if (paymentType === 'transfer') {
-      // Handle transfer payment
-      const paymentResult = await paymentLogic.processTransfer(sourceAccountNumber, destinationAccountNumber);
-      res.status(200).json(paymentResult);
-    } else if (paymentType === 'card') {
-      // Handle card payment
-      const paymentResult = await paymentLogic.processCardPayment(cardToken);
-      res.status(200).json(paymentResult);
-    } else if (paymentType === 'flutterwave') {
-      // Handle Flutterwave payment
-      const { amount, email, phoneNumber } = req.body;
-      const paymentResult = await paymentLogic.processFlutterwavePayment(amount, email, phoneNumber);
-      res.status(200).json(paymentResult);
-    } else {
-      res.status(400).json({ success: false, message: 'Invalid payment type' });
-    }
+    const transferResult = await paymentLogic.processTransfer(
+      AccountNumber,
+      Bank,
+      AccountName
+    );
+
+    res.status(200).json(transferResult);
   } catch (error) {
-    console.error('Error processing payment:', error.message);
+    console.error('Error processing transfer:', error.message);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// Route for processing a card payment
+router.post('/make-card-payment', async (req, res) => {
+  const { cardDetails } = req.body;
+
+  try {
+    const cardPaymentResult = await paymentLogic.processCardPayment(cardDetails);
+
+    res.status(200).json(cardPaymentResult);
+  } catch (error) {
+    console.error('Error processing card payment:', error.message);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// Route for processing a Flutterwave payment
+router.post('/make-flutterwave-payment', async (req, res) => {
+  const { amount, email, phoneNumber } = req.body;
+
+  try {
+    const flutterwavePaymentResult = await paymentLogic.processFlutterwavePayment(
+      amount,
+      email,
+      phoneNumber
+    );
+
+    res.status(200).json(flutterwavePaymentResult);
+  } catch (error) {
+    console.error('Error processing Flutterwave payment:', error.message);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });

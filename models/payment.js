@@ -1,15 +1,15 @@
-// payment.js
-
 const mongoose = require('mongoose');
 const axios = require('axios');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 require('dotenv').config();
 
 const FLUTTERWAVE_SECRET_KEY = process.env.FLUTTERWAVE_SECRET_KEY;
 
 const paymentSchema = new mongoose.Schema({
   transactionType: String,
-  sourceAccountNumber: String,
   destinationAccountNumber: String,
+  destinationBank: String,
+  destinationAccountName: String,
   timestamp: { type: Date, default: Date.now },
 });
 
@@ -20,43 +20,68 @@ async function savePaymentToDatabase(paymentData) {
   return payment.save();
 }
 
-async function processTransfer(sourceAccountNumber, destinationAccountNumber) {
-  // Handle transfer logic (no changes for this example)
-  return {
-    success: true,
-    message: 'Transfer successful',
-    sourceAccountNumber: sourceAccountNumber,
-    destinationAccountNumber: destinationAccountNumber,
-  };
+async function processTransfer(destinationAccountNumber, destinationBank, destinationAccountName) {
+  try {
+    // Perform transfer logic (you can customize this based on your use case)
+    // For example, you might use a third-party API to initiate the transfer
+    // Replace "AccountNumber," "Bank," and "AccountName" with the actual variables
+    const transferResponse = await axios.post('https://some-transfer-api.com/transfer', {
+        destinationAccountNumbe: destinationAccountNumber,
+        destinationBank: destinationBank,
+        destinationAccountName: destinationAccountName,
+    });
+
+    // Save payment information to the database
+    await savePaymentToDatabase({
+      transactionType: 'transfer',
+      destinationAccountNumber: destinationAccountNumber,
+      destinationBank: destinationBank,
+      destinationAccountName: destinationAccountName,
+    });
+
+    return {
+      success: true,
+      message: 'Transfer successful',
+      destinationAccountNumber: destinationAccountNumber,
+      destinationBank: destinationBank,
+      destinationAccountName: destinationAccountName,
+    };
+  } catch (error) {
+    console.error('Error processing transfer:', error.message);
+    throw error;
+  }
 }
 
-async function processCardPayment(reference) {
+async function processCardPayment(cardDetails) {
   try {
-    // Validate the payment using Flutterwave API
-    const response = await axios.get(`https://api.flutterwave.com/v3/transactions/${reference}/verify`, {
-      headers: {
-        Authorization: `Bearer ${FLUTTERWAVE_SECRET_KEY}`,
+    // Use the Stripe API to tokenize the card
+    const token = await stripe.tokens.create({
+      card: {
+        number: cardDetails.cardNumber,
+        exp_month: cardDetails.cardExpiryMonth,
+        exp_year: cardDetails.cardExpiryYear,
+        cvc: cardDetails.cvv,
       },
     });
 
-    const verificationData = response.data.data;
+    // Use the token for further processing
+    const response = await stripe.charges.create({
+      amount: 1000, // Example amount in cents
+      currency: 'usd',
+      source: token.id,
+    });
 
-    // Check if the payment was successful
-    if (verificationData.status === 'successful') {
-      // Save payment information to the database
-      await savePaymentToDatabase({
-        transactionType: 'card',
-        sourceAccountNumber: 'N/A',
-        destinationAccountNumber: 'N/A',
-      });
+    // Save payment information to the database
+    await savePaymentToDatabase({
+      transactionType: 'card',
+      sourceAccountNumber: 'N/A',
+      destinationAccountNumber: 'N/A',
+    });
 
-      return {
-        success: true,
-        message: 'Card payment successful',
-      };
-    } else {
-      throw new Error('Payment verification failed');
-    }
+    return {
+      success: true,
+      message: 'Card payment successful',
+    };
   } catch (error) {
     console.error('Error processing card payment:', error.message);
     throw error;
