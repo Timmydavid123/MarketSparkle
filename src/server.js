@@ -7,16 +7,7 @@ const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
 const extractUserId = require('../middleware/extractUserId')
-const cloudinary = require('cloudinary').v2;
 const paymentLogic = require('../models/payment');
-
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: 'dmlw4ytpo',
-  api_key: '829542326545393',
-  api_secret: 'u9hZkf9oCidRFZxLkii_LUmiJSs',
-});
 
 const app = express();
 const PORT = process.env.PORT || 5000;

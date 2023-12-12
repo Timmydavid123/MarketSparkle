@@ -21,6 +21,14 @@ const productSchema = new mongoose.Schema({
   isPublished: { type: Boolean, default: false },
 });
 
+// Middleware to set isPublished to true before saving
+productSchema.pre('save', function (next) {
+  if (!this.isPublished) {
+    this.isPublished = true;
+  }
+  next();
+});
+
 const Product = mongoose.model('Product', productSchema);
 
 module.exports = Product;

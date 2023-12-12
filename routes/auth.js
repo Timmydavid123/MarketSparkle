@@ -8,15 +8,16 @@ const multer = require('multer');
 const { User, Vendor } = require('../models/User');
 const paymentLogic = require('../models/payment');
 const chatController = require('../controllers/chatController');
+const upload = require('../middleware/uploadMiddleware');
 const ChatMessage = require('../models/ChatMessage');
 
 const router = express.Router();
 
-// Set up storage for multer
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// // Set up storage for multer
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage: storage });
 
-router.post('/signup/user', authController.userSignup);
+router.post('/signup/user', authController.userSignup);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 router.post('/signup/vendor', authController.vendorSignup);
 router.post('/login/user', authController.userLogin);
 router.post('/login/vendor', authController.vendorLogin);
@@ -95,9 +96,8 @@ router.post('/upload-profile-picture', extractUserId, upload.single('profilePict
 router.post('/update-profile-picture/:userId', extractUserId, upload.single('profilePicture'), authController.updateProfilePicture);
 
 // Product routes
-router.post('/create-product', extractUserId, productController.createProduct);
-router.put('/update-product/:productId', extractUserId, productController.updateProduct);
-router.get('/edit-product/:productId', extractUserId, productController.editProduct); // New route for editing
+router.post('/create-product', upload.array('files'), extractUserId, productController.createProduct);
+router.put('/update-product/:productId', upload.array('files'), extractUserId, productController.updateProduct);
 router.delete('/delete-product/:productId', extractUserId, productController.deleteProduct);
 
 
