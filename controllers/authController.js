@@ -521,39 +521,37 @@
           }
         },
 
-
-      resendOTP: async (req, res) => {
-        try {
-          const { email } = req.body;
-      
-          // Find the user or vendor by email
-          const user = await User.findOne({ email });
-          const vendor = await Vendor.findOne({ email });
-          if (!user && !vendor) {
-            return res.status(404).json({ message: 'User or vendor not found' });
+        resendOTP: async (req, res) => {
+          try {
+            const { email } = req.body;
+        
+            // Find the user or vendor by email
+            const user = await User.findOne({ email });
+            const vendor = await Vendor.findOne({ email });
+            if (!user && !vendor) {
+              return res.status(404).json({ message: 'User or vendor not found' });
+            }
+        
+            // Determine whether to use User or Vendor model based on your application structure
+            // For example, if you have a unified User model, use that directly
+            const userData = user || vendor;
+        
+            // Generate a new 4-digit OTP
+            const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
+        
+            // Update the user's or vendor's OTP in the database
+            userData.emailVerificationOTP = newOTP;
+            await userData.save();
+        
+            // Send a new OTP to the user's or vendor's email without including the OTP in the email body
+            await sendEmail(email, 'Email Verification OTP', 'A new OTP has been sent to your email.');
+        
+            res.status(200).json({ message: 'New OTP sent successfully.' });
+          } catch (error) {
+            console.error('Error during OTP resend:', error);
+            res.status(500).json({ message: 'Internal Server Error during OTP resend' });
           }
-      
-          // Determine whether to use User or Vendor model based on your application structure
-          // For example, if you have a unified User model, use that directly
-          const userData = user || vendor;
-      
-       
-          // Generate a new 4-digit OTP
-          const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
-      
-          // Update the user's or vendor's OTP in the database
-          userData.emailVerificationOTP = newOTP;
-          await userData.save();
-      
-          // Send the new OTP to the user's or vendor's email
-          await sendEmail(email, 'Email Verification OTP', `Your new OTP is: ${newOTP}`);
-      
-          res.status(200).json({ message: 'New OTP sent successfully.' });
-        } catch (error) {
-          console.error('Error during OTP resend:', error);
-          res.status(500).json({ message: 'Internal Server Error during OTP resend' });
-        }
-      },
+        },
 
  getUser: async (req, res) => {
   try {
