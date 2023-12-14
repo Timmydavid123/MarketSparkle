@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('../routes/auth');
+const paymentRoutes = require('../routes/payment');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
@@ -61,6 +62,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/api', authRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Start the server
 app.listen(PORT, () => {
