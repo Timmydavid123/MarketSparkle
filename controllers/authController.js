@@ -115,98 +115,96 @@
     // }));
     
       const authController = {
-        userSignup: async (req, res) => {
-          try {
-            const {fullName, email, password, confirmPassword } = req.body;
-      
-            // Check if the passwords match
-            if (password !== confirmPassword) {
-              return res.status(400).json({ message: 'Passwords do not match.' });
-            }
-      
-            // Check if the user already exists
-            const existingUser = await User.findOne({ email });
-            if (existingUser) {
-              return res.status(400).json({ message: 'User already exists with this email.' });
-            }
-      
-            // Create a new user
-            const newUser = await User.create({
-              fullName,
-              email,
-              password,
-              // Add other user-specific fields as needed
-            });
-      
-            // Optionally, generate a token for the newly signed up user
-            const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '1d' });
-      
-          // Generate a new 4-digit OTP
-          const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
-      
-            // Save the OTP in the user document
-            newUser.emailVerificationOTP = newOTP;
-            await newUser.save();
-      
-            // Send the OTP to the user's email
-            const emailText = `Your OTP for email verification is: ${newOTP}`;
-            await sendEmail(email, 'Email Verification OTP', emailText);
+          userSignup: async (req, res) => {
+            try {
+              const {fullName, email, password, confirmPassword } = req.body;
+        
+              // Check if the passwords match
+              if (password !== confirmPassword) {
+                return res.status(400).json({ message: 'Passwords do not match.' });
+              }
+        
+              // Check if the user already exists
+              const existingUser = await User.findOne({ email });
+              if (existingUser) {
+                return res.status(400).json({ message: 'User already exists with this email.' });
+              }
+        
+              // Create a new user
+              const newUser = await User.create({
+                fullName,
+                email,
+                password,
+                // Add other user-specific fields as needed
+              });
+        
+              // Optionally, generate a token for the newly signed up user
+              const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '1d' });
+        
+            // Generate a new 4-digit OTP
+            const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
+        
+              // Save the OTP in the user document
+              newUser.emailVerificationOTP = newOTP;
+              await newUser.save();
+        
+              // Send the OTP to the user's email
+              const emailText = `Your OTP for email verification is: ${newOTP}`;
+              await sendEmail(email, 'Email Verification OTP', emailText);
 
-            res.status(201).json({ message: 'User signup successful. Email verification OTP sent.' });
-          } catch (error) {
-            console.error('Error during user signup:', error);
-            res.status(500).json({ message: 'Internal Server Error during user signup' });
-          }
-        },
-      
-        vendorSignup: async (req, res) => {
-          try {
-            const { fullName, email, password, confirmPassword, streetAddress, city, state, country, zipCode } = req.body;
-      
-            // Check if the passwords match
-            if (password !== confirmPassword) {
-              return res.status(400).json({ message: 'Passwords do not match.' });
+              res.status(201).json({ message: 'User signup successful. Email verification OTP sent.' });
+            } catch (error) {
+              console.error('Error during user signup:', error);
+              res.status(500).json({ message: 'Internal Server Error during user signup' });
             }
-      
-            // Check if the vendor already exists
-            const existingVendor = await Vendor.findOne({ email });
-            if (existingVendor) {
-              return res.status(400).json({ message: 'Vendor already exists with this email.' });
+          },
+        
+          vendorSignup: async (req, res) => {
+            try {
+              const { fullName, email, password, confirmPassword, streetAddress, city, state, country, zipCode } = req.body;
+        
+              // Check if the passwords match
+              if (password !== confirmPassword) {
+                return res.status(400).json({ message: 'Passwords do not match.' });
+              }
+        
+              // Check if the vendor already exists
+              const existingVendor = await Vendor.findOne({ email });
+              if (existingVendor) {
+                return res.status(400).json({ message: 'Vendor already exists with this email.' });
+              }
+        
+              // Create a new vendor
+              const newVendor = await Vendor.create({
+                fullName,
+                email,
+                password,
+                streetAddress,
+                city,
+                state,
+                country,
+                zipCode,
+                // Add other vendor-specific fields as needed
+              });
+        
+              // Optionally, generate a token for the newly signed up vendor
+              const token = jwt.sign({ vendorId: newVendor._id }, JWT_SECRET, { expiresIn: '1d' });
+        
+              const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
+              // Save the OTP in the vendor document
+              newVendor.emailVerificationOTP = newOTP;
+              await newVendor.save();
+        
+              // Send the OTP to the vendor's email
+              const emailText = `Your OTP for email verification is: ${newOTP}`;
+              await sendEmail(email, 'Email Verification OTP', emailText);
+        
+              res.status(201).json({ message: 'Vendor signup successful. Email verification OTP sent.' });
+            } catch (error) {
+              console.error('Error during vendor signup:', error);
+              res.status(500).json({ message: 'Internal Server Error during vendor signup', error: error.message });
             }
-      
-            // Create a new vendor
-            const newVendor = await Vendor.create({
-              fullName,
-              email,
-              password,
-              streetAddress,
-              city,
-              state,
-              country,
-              zipCode,
-              // Add other vendor-specific fields as needed
-            });
-      
-            // Optionally, generate a token for the newly signed up vendor
-            const token = jwt.sign({ vendorId: newVendor._id }, JWT_SECRET, { expiresIn: '1d' });
-      
-          // Generate a new 4-digit OTP
-          const newOTP = otpGenerator.generate(4, { upperCase: false, specialChars: false });
-      
-            // Save the OTP in the vendor document
-            newUser.emailVerificationOTP = newOTP;
-            await newVendor.save();
-      
-            // Send the OTP to the vendor's email
-            const emailText = `Your OTP for email verification is: ${newOTP}`;
-            await sendEmail(email, 'Email Verification OTP', emailText);
-      
-            res.status(201).json({ message: 'Vendor signup successful. Email verification OTP sent.' });
-          } catch (error) {
-            console.error('Error during vendor signup:', error);
-            res.status(500).json({ message: 'Internal Server Error during vendor signup' });
-          }
-        },
+          },
       
         userLogin: async (req, res) => {
           try {
