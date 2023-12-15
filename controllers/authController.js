@@ -426,7 +426,7 @@
     await vendor.save();
 
     // Send the password reset email with the token link
-    const resetLink = `http://localhost:3000/Resetpassword?token=${passwordResetToken}`;
+    const resetLink = `http://localhost:3001/Resetpassword?token=${passwordResetToken}`;
     const emailText = `Click on the following link to reset your password: ${resetLink}`;
     await sendEmail(email, 'Password Reset', emailText);
 
