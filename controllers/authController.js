@@ -373,41 +373,69 @@
           }
         },
 
-        forgotPassword: async (req, res) => {
-          try {
-            const { email } = req.body;
-        
-            // Check if the user or vendor exists
-            const user = await User.findOne({ email });
-            const vendor = await Vendor.findOne({ email });
-            if (!user && !vendor) {
-              return res.status(404).json({ message: 'User or vendor not found' });
-            }
-        
-            // Determine whether to use User or Vendor model based on your application structure
-            // For example, if you have a unified User model, use that directly
-            const userData = user || vendor;
-        
-            // Generate a password reset token 
-            const passwordResetToken = uuid.v4();
-        
-            // Save the password reset token and its expiration time in the user or vendor document
-            userData.passwordResetToken = passwordResetToken;
-            userData.passwordResetTokenExpiration = Date.now() + 3600000; // Token expires in 1 hour
-        
-            await userData.save();
-        
-            // Send the password reset email with the token link
-            const resetLink = `http://localhost:3000/Resetpassword?token=${passwordResetToken}`;
-            const emailText = `Click on the following link to reset your password: ${resetLink}`;
-            await sendEmail(email, 'Password Reset', emailText);
-        
-            res.status(200).json({ message: 'Password reset instructions sent. Check your email.' });
-          } catch (error) {
-            console.error(error);
-            res.status(500).send('Internal Server Error');
-          }
-        },
+// Route for user forgotPassword
+  forgotPasswordUser: async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate a password reset token 
+    const passwordResetToken = uuid.v4();
+
+    // Save the password reset token and its expiration time in the user document
+    user.passwordResetToken = passwordResetToken;
+    user.passwordResetTokenExpiration = Date.now() + 3600000; // Token expires in 1 hour
+
+    await user.save();
+
+    // Send the password reset email with the token link
+    const resetLink = `http://localhost:3000/Resetpassword?token=${passwordResetToken}`;
+    const emailText = `Click on the following link to reset your password: ${resetLink}`;
+    await sendEmail(email, 'Password Reset', emailText);
+
+    res.status(200).json({ message: 'Password reset instructions sent. Check your email.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+},
+
+// Route for vendor forgotPassword
+  forgotPasswordVendor: async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const vendor = await Vendor.findOne({ email });
+
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    // Generate a password reset token 
+    const passwordResetToken = uuid.v4();
+
+    // Save the password reset token and its expiration time in the vendor document
+    vendor.passwordResetToken = passwordResetToken;
+    vendor.passwordResetTokenExpiration = Date.now() + 3600000; // Token expires in 1 hour
+
+    await vendor.save();
+
+    // Send the password reset email with the token link
+    const resetLink = `http://localhost:3000/Resetpassword?token=${passwordResetToken}`;
+    const emailText = `Click on the following link to reset your password: ${resetLink}`;
+    await sendEmail(email, 'Password Reset', emailText);
+
+    res.status(200).json({ message: 'Password reset instructions sent. Check your email.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+},
 
 // resetPassword: async (req, res) => {
   resetPassword: async (req, res) => {
