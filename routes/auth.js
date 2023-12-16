@@ -69,30 +69,6 @@ router.get('/auth/google/callback',
   }
 );
 
-router.get('/auth/facebook',
-  passport.authenticate('facebook', { scope: ['email'] })
-);
-
-router.get('/auth/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Successful authentication, redirect to a success page or send a response
-    res.redirect('/');
-  }
-);
-
-router.get('/auth/instagram',
-  passport.authenticate('instagram')
-);
-
-router.get('/auth/instagram/callback',
-  passport.authenticate('instagram', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Successful authentication, redirect to a success page or send a response
-    res.redirect('/');
-  }
-);
-
 // New routes for profile picture
 router.post('/upload-profile-picture', extractUserId, upload.single('profilePicture'), authController.uploadProfilePicture);
 router.post('/update-profile-picture/:userId', extractUserId, upload.single('profilePicture'), authController.updateProfilePicture);
