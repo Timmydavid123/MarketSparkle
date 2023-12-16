@@ -483,7 +483,7 @@
       
             // Update the user's email verification status in the database
             vendor.isVerified = true;
-            await user.save();
+            await vendor.save();
 
             res.status(200).json({ message: 'Email verified successfully.' });
           } catch (error) {
