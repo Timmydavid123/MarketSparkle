@@ -378,7 +378,7 @@
     res.status(200).json({ message: 'Password reset instructions sent. Check your email.' });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Inter nal Server Error');
+    res.status(500).send('Internal Server Error');
   }
 },
 
@@ -389,12 +389,15 @@
   
       // Determine whether to use User or Vendor model based on your application structure
       // For example, if you have a unified User model, use that directly
-      const user = await User.findOne({ passwordResetToken: token }); 
-      const vendor = await Vendor.findOne({ passwordResetToken: token });
+      const vendor = await Vendor.findOne({ passwordResetToken: token }); 
+      const user = await User.findOne({ passwordResetToken: token });
   
-      // Check if the token is valid and not expired
-      if (!user && !vendor) {
-        return res.status(401).json({ message: 'Invalid or expired token' });
+      // Check if the token is valid and not expired for the vendor
+      if (!vendor || (vendor.passwordResetTokenExpiration && vendor.passwordResetTokenExpiration < Date.now())) {
+        // Check if the token is valid and not expired for the user
+        if (!user || (user.passwordResetTokenExpiration && user.passwordResetTokenExpiration < Date.now())) {
+          return res.status(401).json({ message: 'Invalid or expired token' });
+        }
       }
   
       // Check if passwords match
@@ -405,17 +408,17 @@
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
   
-      // Update the user's or vendor's password and clear the reset token fields
-      if (user) {
-        user.password = hashedPassword;
-        user.passwordResetToken = undefined;
-        user.passwordResetTokenExpiration = undefined;
-        await user.save();
-      } else if (vendor) {
+      // Update the vendor's or user's password and clear the reset token fields
+      if (vendor) {
         vendor.password = hashedPassword;
         vendor.passwordResetToken = undefined;
         vendor.passwordResetTokenExpiration = undefined;
         await vendor.save();
+      } else if (user) {
+        user.password = hashedPassword;
+        user.passwordResetToken = undefined;
+        user.passwordResetTokenExpiration = undefined;
+        await user.save();
       }
   
       res.status(200).json({ message: 'Password reset successful' });
