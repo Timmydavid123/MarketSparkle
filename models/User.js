@@ -44,12 +44,10 @@ const userSchema = new mongoose.Schema({
 // Hash the password before saving to the database
 userSchema.pre('save', async function (next) {
   const user = this;
-
   if (user.isModified('password')) {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
   }
-
   next();
 });
 
@@ -86,6 +84,8 @@ userSchema.methods.updateProfilePicture = async function (fileBuffer) {
     throw new Error('Error updating profile picture on Cloudinary');
   }
 };
+
+
 
 const User = mongoose.model('User', userSchema);
 

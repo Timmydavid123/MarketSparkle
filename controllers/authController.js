@@ -12,7 +12,7 @@
   const multer = require('multer');
   const extractUserId = require('../middleware/extractUserId');
   const cloudinary = require('cloudinary').v2;
-  const { User, Vendor } = require('../models/User');
+  const { User, Vendor} = require('../models/User');
   const {Product} = require('../models/product')
 
     // Set up storage for multer
@@ -371,7 +371,7 @@
     await vendor.save();
 
     // Send the password reset email with the token link
-    const resetLink = `http://localhost:3001/change-password/:token=${passwordResetToken}`;
+    const resetLink = `http://localhost:3001/change-password?token=${passwordResetToken}`;
     const emailText = `Click on the following link to reset your password: ${resetLink}`;
     await sendEmail(email, 'Password Reset', emailText);
 
@@ -527,45 +527,55 @@
           }
         },
 
- getUser: async (req, res) => {
-  try {
-    // Get the user ID or vendor ID from the request parameter
-    const userId = req.params.userId;
-    const vendorId = req.params.vendorId;
+        getUser: async (req, res) => {
+          try {
+            const userId = req.params.userId;
+            const user = await User.findById(userId);
+      
+            if (!user) {
+              return res.status(404).json({ message: 'User not found' });
+            }
+      
+            res.status(200).json({
+              role: 'user',
+              fullName: user.fullName,
+              email: user.email,
+              profilePicture: user.profilePicture,
+              // Add other user-specific fields as needed
+            });
+          } catch (error) {
+            console.error('Error getting user details:', error);
+            res.status(500).json({ message: 'Internal Server Error getting user details' });
+          }
+        },
+      
 
-    // Find the user or vendor by ID
-    const user = await User.findById(userId);
-    const vendor = await Vendor.findById(vendorId);
-
-    if (!user && !vendor) {
-      return res.status(404).json({ message: 'User or vendor not found' });
-    }
-
-    if (user) {
-      // Return user details with profile picture
-      res.status(200).json({
-        role: 'user',
-        fullName: user.fullName,
-        email: user.email,
-        profilePicture: user.profilePicture,
-        // Add other user-specific fields as needed
-      });
-    } else {
-      // Return vendor details with profile picture
-      res.status(200).json({
-        role: 'vendor',
-        fullName: vendor.fullName,
-        email: vendor.email,
-        profilePicture: vendor.profilePicture,
-        // Add other vendor-specific fields as needed
-      });
-    }
-  } catch (error) {
-    console.error('Error getting user details:', error);
-    res.status(500).json({ message: 'Internal Server Error getting user details' });
-  }
-},
-
+      getVendor: async (req, res) => {
+        try {
+          const vendorId = req.params.vendorId;
+          const vendor = await Vendor.findById(vendorId);
+      
+          if (!vendor) {
+            return res.status(404).json({ message: 'Vendor not found' });
+          }
+      
+          res.status(200).json({
+            role: 'vendor',
+            fullName: vendor.fullName,
+            email: vendor.email,
+            profilePicture: vendor.profilePicture, 
+            streetAddress: vendor.streetAddress,
+            city: vendor.city,
+            state: vendor.state,
+            country: vendor.country,
+            zipCode: vendor.zipCode,
+            // Add other vendor-specific fields as needed
+          });
+        } catch (error) {
+          console.error('Error getting vendor details:', error);
+          res.status(500).json({ message: 'Internal Server Error getting vendor details' });
+        }
+      },
 
 
       uploadProfilePicture: async (req, res) => {

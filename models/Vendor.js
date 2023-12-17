@@ -1,7 +1,4 @@
-// models/Vendor.js
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const User = require('./User');
 
 const vendorSchema = new mongoose.Schema({
@@ -25,7 +22,7 @@ const vendorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // Add other vendor-specific fields here
+  // ... (other vendor-specific fields)
 });
 
 // Inherit the user schema for common fields
@@ -34,3 +31,8 @@ vendorSchema.add(User.schema);
 const Vendor = mongoose.model('Vendor', vendorSchema);
 
 module.exports = Vendor;
+
+
+
+
+
