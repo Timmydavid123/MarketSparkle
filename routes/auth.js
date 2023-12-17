@@ -10,7 +10,7 @@ const paymentLogic = require('../models/payment');
 const chatController = require('../controllers/chatController');
 const upload = require('../middleware/uploadMiddleware');
 const ChatMessage = require('../models/ChatMessage');
-const Referral = require('../models/Referral');
+const Referral = require('../models/referral');
 
 const router = express.Router();
 
