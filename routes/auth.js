@@ -10,6 +10,7 @@ const paymentLogic = require('../models/payment');
 const chatController = require('../controllers/chatController');
 const upload = require('../middleware/uploadMiddleware');
 const ChatMessage = require('../models/ChatMessage');
+const Referral = require('../models/Referral');
 
 const router = express.Router();
 
@@ -119,6 +120,39 @@ router.get('/homepage/products', async (req, res) => {
   } catch (error) {
     console.error('Error fetching products for homepage:', error);
     res.status(500).json({ error: 'Internal Server Error fetching products for homepage' });
+  }
+});
+
+router.post('/validateReferralCode', async (req, res) => {
+  const { code } = req.body;
+
+  // Limit the number of referrals during a certain time frame
+  const currentTime = new Date();
+  const startTime = new Date(currentTime);
+  startTime.setHours(0, 0, 0, 0);
+
+  const referralCount = await Referral.countDocuments({
+    code,
+    timestamp: { $gte: startTime },
+  });
+
+  if (referralCount >= 5) {
+    return res.status(400).json({ error: 'Referral limit exceeded for today' });
+  }
+
+  // Fetch information about the referred person
+  const referredPerson = await Referral.findOne({ code });
+
+  if (!referredPerson) {
+    return res.status(400).json({ error: 'Referral code is invalid' });
+  }
+
+  // Your validation logic here
+  // For simplicity, this example considers any non-empty code as valid
+  if (code.trim() !== '') {
+    res.status(200).json({ message: 'Referral code is valid', referredPerson });
+  } else {
+    res.status(400).json({ error: 'Referral code is invalid' });
   }
 });
 
