@@ -16,6 +16,28 @@ const router = express.Router();
 // // Set up storage for multer
 // const storage = multer.memoryStorage();
 // const upload = multer({ storage: storage });
+const isLoggedIn = (req, res, next) => {
+  if (!req.userId) {
+    return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+  }
+  next();
+};
+
+// Middleware to check if the user is a vendor
+const isVendor = async (req, res, next) => {
+  try {
+    const vendor = await Vendor.findById(req.vendorId);
+
+    if (!vendor) {
+      return res.status(403).json({ message: 'Unauthorized. Only vendors can access this route.' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error checking vendor status:', error);
+    res.status(500).json({ message: 'Internal Server Error checking vendor status' });
+  }
+};
 
 router.post('/signup/user', authController.userSignup);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 router.post('/signup/vendor', authController.vendorSignup);
@@ -38,16 +60,24 @@ router.get('/vendor-profile', extractUserId, checkTokenExpiration, async (req, r
     res.status(500).json({ message: 'Internal Server Error accessing vendor profile' });
   }
 });
-router.post('/forgot-password/user', authController.forgotPasswordUser);
-router.post('/forgot-password/vendor', authController.forgotPasswordVendor);
-router.post('/verify-email-user', authController.verifyUserEmail);
-router.post('/verify-email-vendor', authController.verifyVendorEmail);
-router.post('/reset-password', authController.resetPassword);
-router.get('/logout', authController.logout);
-router.post('/resend-otp', authController.resendOTP);
+router.post('/forgot-password/user', isLoggedIn, authController.forgotPasswordUser);
+router.post('/verify-email-user', isLoggedIn, authController.verifyUserEmail);
+
+// Protected routes for vendors
+router.post('/forgot-password/vendor', isLoggedIn, isVendor, authController.forgotPasswordVendor);
+router.post('/verify-email-vendor', isLoggedIn, isVendor, authController.verifyVendorEmail);
+
+// Routes accessible to both users and vendors
+router.post('/reset-password', isLoggedIn, authController.resetPassword);
+router.get('/logout', isLoggedIn, authController.logout);
+router.post('/resend-otp', isLoggedIn, authController.resendOTP);
+
 router.get('/user', extractUserId, authController.getUser);
-router.get('/users/:userId', authController.getUser);
-router.get('/users/:vendorId', authController.getUser);
+// Protected route for getting user information
+router.get('/users/:userId', isLoggedIn, authController.getUser);
+
+// Protected route for getting vendor information
+router.get('/vendors/:vendorId', isLoggedIn, isVendor, authController.getVendor);
 
 // Route to update user profile
 router.put('/update-profile', extractUserId, authController.updateUserProfile);
