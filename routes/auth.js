@@ -77,7 +77,7 @@ router.get('/user', extractUserId, authController.getUser);
 router.get('/users/:userId', isLoggedIn, authController.getUser);
 
 // Protected route for getting vendor information
-router.get('/vendors/:vendorId', isLoggedIn, isVendor, authController.getVendor);
+router.get('/vendors/:vendorId', isLoggedIn, isVendor, authController.getUser);
 
 // Route to update user profile
 router.put('/update-profile', extractUserId, authController.updateUserProfile);
