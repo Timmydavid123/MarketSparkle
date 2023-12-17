@@ -32,7 +32,7 @@ mongoose.connect(MONGODB_URI, {
 app.use(express.json());
 
 const corsOptions = {
-  origin: ['http://localhost:3001','http://localhost:3000','http://localhost:3002'],
+  origin: ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
@@ -44,6 +44,13 @@ app.options('*', cors(corsOptions));
 
 // Use the CORS middleware for all routes
 app.use(cors(corsOptions));
+
+// Add the Cross-Origin-Opener-Policy header here
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
+
 
 app.use(express.urlencoded({extended: false}))
 app.use(extractUserId);
