@@ -154,7 +154,15 @@ router.post('/validateReferralCode', async (req, res) => {
         await user.save();
 
         // Send an email with the referral code or use any other notification method
-        const emailContent = `Your referral code is: ${newReferral.code}`;
+        const emailContent = `Hello ${user.fullName},
+
+          Thank you for joining our platform! Your referral code is: ${newReferral.code}
+
+          Share this code with your friends and earn rewards for each successful referral.
+
+          Best regards,
+          MarketSparkle`;
+
         mailer.sendEmail(user.email, 'Referral Code', emailContent);
 
         res.status(200).json({ message: 'Referral code generated and sent successfully' });
