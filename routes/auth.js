@@ -126,34 +126,47 @@ router.get('/homepage/products', async (req, res) => {
 router.post('/validateReferralCode', async (req, res) => {
   const { code } = req.body;
 
-  // Limit the number of referrals during a certain time frame
-  const currentTime = new Date();
-  const startTime = new Date(currentTime);
-  startTime.setHours(0, 0, 0, 0);
-
-  const referralCount = await Referral.countDocuments({
-    code,
-    timestamp: { $gte: startTime },
-  });
-
-  if (referralCount >= 5) {
-    return res.status(400).json({ error: 'Referral limit exceeded for today' });
-  }
-
-  // Fetch information about the referred person
-  const referredPerson = await Referral.findOne({ code });
-
-  if (!referredPerson) {
+  // Your validation logic here
+  // For simplicity, this example considers any non-empty code as valid
+  if (code.trim() === '') {
     return res.status(400).json({ error: 'Referral code is invalid' });
   }
 
-  // Your validation logic here
-  // For simplicity, this example considers any non-empty code as valid
-  if (code.trim() !== '') {
-    res.status(200).json({ message: 'Referral code is valid', referredPerson });
+  // Check if the referral code exists
+  const existingReferral = await Referral.findOne({ code });
+
+  if (!existingReferral) {
+    // Generate a new referral code
+    const newReferral = new Referral({
+      code,
+    });
+
+    try {
+      // Save the referral code
+      await newReferral.save();
+
+      // Send the generated referral code to the user
+      const user = await User.findOne(/* your query to find the user */);
+
+      if (user) {
+        // Update the referral information for the user
+        user.referralCode = newReferral.code;
+        await user.save();
+
+        // Send an email with the referral code or use any other notification method
+        const emailContent = `Your referral code is: ${newReferral.code}`;
+        mailer.sendEmail(user.email, 'Referral Code', emailContent);
+
+        res.status(200).json({ message: 'Referral code generated and sent successfully' });
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      console.error('Error generating and sending referral code:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   } else {
-    res.status(400).json({ error: 'Referral code is invalid' });
+    res.status(400).json({ error: 'Referral code already exists' });
   }
 });
-
 module.exports = router;

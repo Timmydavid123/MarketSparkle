@@ -1,8 +1,15 @@
 const mongoose = require('mongoose');
 
 const referralSchema = new mongoose.Schema({
-  code: String,
+  code: {
+    type: String,
+    unique: true,
+  },
   referredBy: String,
+  referredUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
   timestamp: { type: Date, default: Date.now },
 });
 
