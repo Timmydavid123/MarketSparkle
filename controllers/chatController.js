@@ -6,8 +6,8 @@ const sendMessage = async (req, res) => {
 
         // Save the user's message to the database
         const userMessage = new ChatMessage({
-            user_id,
-            vendor_id,
+            userId,
+            vendorId,
             sender: 'user',
             message,
         });
@@ -18,8 +18,8 @@ const sendMessage = async (req, res) => {
 
         // Save the vendor's response to the database
         const vendorMessage = new ChatMessage({
-            user_id,
-            vendor_id,
+            userId,
+            vendorId,
             sender: 'vendor',
             message: vendorResponse,
         });
