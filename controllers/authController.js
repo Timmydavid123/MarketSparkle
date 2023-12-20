@@ -6,18 +6,13 @@
   const uuid = require('uuid');
   const passport = require('passport');
   const GoogleStrategy = require('passport-google-oauth20').Strategy;
-  const FacebookStrategy = require('passport-facebook').Strategy;
-  const InstagramStrategy = require('passport-instagram').Strategy;
-  const axios = require('axios');
-  const multer = require('multer');
-  const extractUserId = require('../middleware/extractUserId');
-  const cloudinary = require('cloudinary').v2;
   const { User, Vendor} = require('../models/User');
   const {Product} = require('../models/product')
+  const upload = require('../middleware/uploadMiddleware');
+  const path = require('../middleware/uploadMiddleware')
 
     // Set up storage for multer
-  const storage = multer.memoryStorage();
-  const upload = multer({ storage: storage });
+
 
     passport.serializeUser((user, done) => {
       done(null, user.id);
@@ -591,16 +586,15 @@
       
           // Check if a file is uploaded
           if (req.file) {
-            const result = await cloudinary.uploader.upload(
-              req.file.path,
-              { folder: 'profile-pictures' } // Set the folder in Cloudinary
-            );
+            const uniqueFilename = `${Date.now()}-${req.file.originalname}`;
+            fs.renameSync(req.file.path, `./uploads/${uniqueFilename}`);
+            const localImagePath = `./uploads/${uniqueFilename}`;
       
-            user.profilePicture = result.secure_url; // Save the URL in the database
+            user.profilePicture = localImagePath; // Save the local image path in the database
       
             await user.save();
       
-            return res.status(200).json({ message: 'Profile picture uploaded successfully' });
+            return res.status(200).json({ message: 'Profile picture uploaded successfully', localImagePath });
           } else {
             return res.status(400).json({ message: 'No file uploaded' });
           }
@@ -609,14 +603,14 @@
           res.status(500).json({ message: 'Internal Server Error uploading profile picture' });
         }
       },
-    
+      
       updateProfilePicture: async (req, res) => {
         try {
           const userId = req.userId;
           console.log('User ID:', userId);
       
           // Call the multer middleware to handle file upload
-          upload(req, res, async (err) => {
+          (req, res, async (err) => {
             if (err) {
               console.error('Multer error:', err);
               return res.status(400).json({ message: 'Error uploading file' });
@@ -629,29 +623,28 @@
             }
       
             // Check if a file is uploaded
-            if (!req.file) {
+            if (req.file) {
+              const uniqueFilename = `${Date.now()}-${req.file.originalname}`;
+              const localImagePath = path.join('./uploads', uniqueFilename); 
+      
+              fs.renameSync(req.file.path, localImagePath);
+      
+              user.profilePicture = localImagePath; 
+              fs.unlinkSync(req.file.path);
+      
+              await user.save();
+      
+              res.status(200).json({ message: 'Profile picture updated successfully', localImagePath });
+            } else {
               return res.status(400).json({ message: 'No file uploaded' });
             }
-      
-            const result = await cloudinary.uploader.upload(
-              req.file.path,
-              { folder: 'profile-pictures' } // Set the folder in Cloudinary
-            );
-      
-            user.profilePicture = result.secure_url; // Save the new URL in the database
-      
-            // Remove the file from your server after uploading to Cloudinary
-            fs.unlinkSync(req.file.path);
-      
-            await user.save();
-      
-            res.status(200).json({ message: 'Profile picture updated successfully' });
           });
         } catch (error) {
           console.error('Error updating profile picture:', error);
           res.status(500).json({ message: 'Internal Server Error updating profile picture' });
         }
       },
+
       addReview: async (req, res) => {
         try {
           const userId = req.userId; // Assuming customer's user ID is stored in the JWT token

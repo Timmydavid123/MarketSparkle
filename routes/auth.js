@@ -5,12 +5,14 @@ const passport = require('passport');
 const extractUserId = require('../middleware/extractUserId');
 const checkTokenExpiration = require('../middleware/checkTokenExpiration');
 const multer = require('multer');
+const fs = require('fs');
 const { User, Vendor } = require('../models/User');
 const paymentLogic = require('../models/payment');
 const chatController = require('../controllers/chatController');
 const upload = require('../middleware/uploadMiddleware');
 const ChatMessage = require('../models/ChatMessage');
 const Referral = require('../models/referral');
+const voucherController = require('../controllers/voucherController');
 
 const router = express.Router();
 
@@ -102,7 +104,7 @@ router.get('/auth/google/callback',
 
 // New routes for profile picture
 router.post('/upload-profile-picture', extractUserId, upload.single('profilePicture'), authController.uploadProfilePicture);
-router.post('/update-profile-picture/:userId', extractUserId, upload.single('profilePicture'), authController.updateProfilePicture);
+router.post('/updateProfilePicture', extractUserId,  upload.single('profilePicture'), authController.updateProfilePicture);
 
 // Product routes
 router.post('/create-product', upload.array('files'), extractUserId, productController.createProduct);
@@ -111,6 +113,9 @@ router.delete('/delete-product/:productId', extractUserId, productController.del
 
 
 router.post('/send_message', chatController.sendMessage);
+
+router.post('/generate', voucherController.generateVoucher);
+router.post('/validate', voucherController.validateVoucher);
 
 // New route for retrieving products for the homepage
 router.get('/homepage/products', async (req, res) => {
