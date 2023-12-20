@@ -17,6 +17,7 @@ cloudinary.config({
   api_secret: 'u9hZkf9oCidRFZxLkii_LUmiJSs',
 });
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -39,7 +40,7 @@ mongoose.connect(MONGODB_URI, {
 app.use(express.json());
 
 app.use(cors({
-  origin: 'http://localhost:3001',
+  origin: '',
   methods: 'GET,HEAD,PUT,PATCH,POST, DELETE',
   credentials: true,
 }));

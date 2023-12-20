@@ -1,0 +1,80 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.container {
+    max-width: 800px;
+}
+.login-container {
+    display: flex;
+    align-items: center;
+}
+.login-image {
+    width: 100%;
+    border-radius: 8px;
+}
+.login-form {
+    max-width: 400px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(252, 227, 227, 0.1);
+}
+.logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.one{
+font-weight:100;
+font-size: 20px;
+
+        
+}
+.class{
+  border-radius: 50px;
+  border:1px solid yellow;
+}
+.class:hover{
+  background:yellow;
+  color: white;
+  transition: 1s;
+}  
+.hello{
+  text-decoration: none;
+}
+.hello2{
+  text-decoration: none;
+}
+.hello3{
+  text-decoration: none;
+}
+.hello4{
+  text-decoration: none;
+}
+.Name{
+  border: none;
+  border-bottom: 2px solid rgb(112, 110, 110);
+}
+.name1{
+  border: none;
+  border-bottom: 2px solid rgb(112, 110, 110);
+}
+.name2{
+  border: none;
+  border-bottom: 2px solid rgb(112, 110, 110);
+}
+.name3{
+  border: none;
+  border-bottom: 2px solid rgb(112, 110, 110);
+}
+.bg{
+  background: rgb(223, 220, 220)
+}
+.container{
+  background: white;
+  border-radius: 10px;
+}
