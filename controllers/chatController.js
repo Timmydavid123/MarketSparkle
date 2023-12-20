@@ -13,11 +13,8 @@ const sendMessage = async (req, res) => {
         });
         await userMessage.save();
 
-        // In a real app, there would be logic here to send the user's message to the vendor
-        // and get the vendor's response.
-
-        // For simplicity, let's assume the vendor responds immediately.
-        const vendorResponse = 'Thanks for your message! How can I assist you?';
+        // Send the user's message to the vendor and get the vendor's response (for simplicity, simulate a delayed response)
+        const vendorResponse = await simulateVendorResponse(message);
 
         // Save the vendor's response to the database
         const vendorMessage = new ChatMessage({
@@ -34,6 +31,15 @@ const sendMessage = async (req, res) => {
         console.error('Error sending message:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
+};
+
+// Simulate a delayed vendor response (you can replace this with actual logic to communicate with the vendor)
+const simulateVendorResponse = async (userMessage) => {
+    // Simulate a delay (you can replace this with actual communication to the vendor)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Simulate a vendor response based on the user's message
+    return `Thanks for your inquiry about ${userMessage}. Our team will get back to you soon!`;
 };
 
 module.exports = {
