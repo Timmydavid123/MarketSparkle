@@ -32,7 +32,7 @@ mongoose.connect(MONGODB_URI, {
 app.use(express.json());
 
 const corsOptions = {
-  origin: ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002', 'http://127.0.0.1:5501', 'https://marketwallet.vercel.app/'],
+  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
@@ -50,7 +50,6 @@ app.use((req, res, next) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   next();
 });
-
 
 app.use(express.urlencoded({extended: false}))
 app.use(extractUserId);
