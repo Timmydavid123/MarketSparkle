@@ -115,7 +115,7 @@ router.delete('/delete-product/:productId', extractUserId, productController.del
 router.post('/send_message', chatController.sendMessage);
 router.get('/get_messages', async (req, res) => {
   try {
-    const messages = await ChatMessage.find().sort({ timestamp: 1 });
+    const messages = await ChatMessage.find().sort({ timestamp: -1 }); // Change to -1 for descending order
     res.json({ messages });
   } catch (error) {
     console.error('Error getting messages:', error);
