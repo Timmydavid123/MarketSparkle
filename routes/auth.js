@@ -113,6 +113,15 @@ router.delete('/delete-product/:productId', extractUserId, productController.del
 
 
 router.post('/send_message', chatController.sendMessage);
+router.get('/get_messages', async (req, res) => {
+  try {
+    const messages = await ChatMessage.find().sort({ timestamp: 1 });
+    res.json({ messages });
+  } catch (error) {
+    console.error('Error getting messages:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 router.post('/generate', voucherController.generateVoucher);
 router.post('/validate', voucherController.validateVoucher);
