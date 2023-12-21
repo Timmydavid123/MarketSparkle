@@ -67,13 +67,13 @@ router.post('/forgot-password/user', isLoggedIn, authController.forgotPasswordUs
 router.post('/verify-email-user', isLoggedIn, authController.verifyUserEmail);
 
 // Protected routes for vendors
-router.post('/forgot-password/vendor', isLoggedIn, isVendor, authController.forgotPasswordVendor);
-router.post('/verify-email-vendor', isLoggedIn, isVendor, authController.verifyVendorEmail);
+router.post('/forgot-password/vendor', authController.forgotPasswordVendor);
+router.post('/verify-email-vendor',  authController.verifyVendorEmail);
 
 // Routes accessible to both users and vendors
-router.post('/reset-password', isLoggedIn, authController.resetPassword);
-router.get('/logout', isLoggedIn, authController.logout);
-router.post('/resend-otp', isLoggedIn, authController.resendOTP);
+router.post('/reset-password', authController.resetPassword);
+router.get('/logout', authController.logout);
+router.post('/resend-otp', authController.resendOTP);
 
 router.get('/user', extractUserId, authController.getUser);
 // Protected route for getting user information
