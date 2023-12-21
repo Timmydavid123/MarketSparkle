@@ -2,36 +2,33 @@ const ChatMessage = require('../models/ChatMessage');
 
 const sendMessage = async (req, res) => {
     try {
-        const { user_id, vendor_id, message } = req.body;
-
-        // Save the user's message to the database
-        const userMessage = new ChatMessage({
-            user_id,
-            vendor_id,
-            sender: 'user',
-            message: newMessage,
-        });
-        await userMessage.save();
-
-        // Send the user's message to the vendor and get the vendor's response (for simplicity, simulate a delayed response)
-        const vendorResponse = await simulateVendorResponse(message);
-
-        // Save the vendor's response to the database
-        const vendorMessage = new ChatMessage({
-            user_id,
-            vendor_id,
-            sender: 'vendor',
-            message: vendorResponse,
-        });
-        await vendorMessage.save();
-
-        // Respond to the client with the success status
-        res.json({ success: true });
+      const { user_id, vendor_id, message } = req.body;
+      const { text } = message;
+  
+      const userMessage = new ChatMessage({
+        user_id,
+        vendor_id,
+        sender: 'user',
+        message: text,
+      });
+      await userMessage.save();
+  
+      const vendorResponse = await simulateVendorResponse(text);
+  
+      const vendorMessage = new ChatMessage({
+        user_id,
+        vendor_id,
+        sender: 'vendor',
+        message: vendorResponse,
+      });
+      await vendorMessage.save();
+  
+      res.json({ success: true });
     } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+      console.error('Error sending message:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
-};
+  };
 
 // Simulate a delayed vendor response (you can replace this with actual logic to communicate with the vendor)
 const simulateVendorResponse = async (userMessage) => {
