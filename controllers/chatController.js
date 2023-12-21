@@ -9,7 +9,7 @@ const sendMessage = async (req, res) => {
             user_id,
             vendor_id,
             sender: 'user',
-            message,
+            message: newMessage,
         });
         await userMessage.save();
 
