@@ -6,8 +6,8 @@ const sendMessage = async (req, res) => {
 
         // Save the user's message to the database
         const userMessage = new ChatMessage({
-            userId,
-            vendorId,
+            user_id,
+            vendor_id,
             sender: 'user',
             message,
         });
@@ -18,8 +18,8 @@ const sendMessage = async (req, res) => {
 
         // Save the vendor's response to the database
         const vendorMessage = new ChatMessage({
-            userId,
-            vendorId,
+            user_id,
+            vendor_id,
             sender: 'vendor',
             message: vendorResponse,
         });
@@ -35,11 +35,16 @@ const sendMessage = async (req, res) => {
 
 // Simulate a delayed vendor response (you can replace this with actual logic to communicate with the vendor)
 const simulateVendorResponse = async (userMessage) => {
-    // Simulate a delay (you can replace this with actual communication to the vendor)
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+        // Simulate a delay (you can replace this with actual communication to the vendor)
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Simulate a vendor response based on the user's message
-    return `Thanks for your inquiry about ${userMessage}. Our team will get back to you soon!`;
+        // Simulate a vendor response based on the user's message
+        return `Thanks for your inquiry about ${userMessage}. We will get back to you soon!`;
+    } catch (error) {
+        console.error('Error simulating vendor response:', error);
+        throw error; // Rethrow the error to be caught in the main try-catch block
+    }
 };
 
 module.exports = {
